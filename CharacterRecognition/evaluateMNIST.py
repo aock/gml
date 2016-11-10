@@ -36,12 +36,35 @@ Dummy transformation function (phi(x)) that just calculates the sum of all pixel
 @param rawData The input picture
 @return The input vector in the phi-space
 """
-def transform(rawData, numBlocks=4):
+def nearestNeighbor(pixel,pixellist):
+    return (0,0)
+    
+
+def transform(rawData):
     result = 0
-    for i in range(28):
-        for j in range(14):
-            if rawData[i,j] < 20 and np.absolute(rawData[i,-j]-rawData[i,j]) < 10:
-                result += 1
+    right = 0
+    left = 0
+    gradientlist = []
+    for i,row in enumerate(rawData):
+        lastpixel=255
+        for j,pixel in enumerate(row):
+            if np.absolute(pixel-lastpixel) > 50:
+                gradientlist.append((i,j))
+            lastpixel = pixel
+    
+    direction_list = []
+    
+    while len(gradientlist) > 0:
+        i,j = gradientlist[0]
+        del gradientlist[0]
+        near_i,near_j = nearestNeighbor((i,j),gradientlist)
+        direction_list.append( np.subtract(np.array([i,j]),np.array([near_i,near_j]) )
+        
+        
+        
+        
+         
+    
     return [np.sum(rawData), result]
 #
 #    result = []
@@ -83,6 +106,8 @@ def splitData(inputFileName, numTrain, trainData, testData):
             testDataFile.write(line)
 
 if __name__ == "__main__":
+    
+    
     phi = transform
     fileName = "mnist_first_batch.csv"
     trainData = "mnist_first_train.csv"
