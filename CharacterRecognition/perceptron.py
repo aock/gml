@@ -79,12 +79,17 @@ class Perceptron:
     def learnIteratorDataset(self, iterator, fileName, phi, maxIterations=1):
         done = False
         cnt = 0
+        cnt2 = 0
         iterations = 0
         while(not done and iterations < maxIterations):
+            
+           
             done = True
             iterations += 1
             it = iterator(fileName)
             for el in it:
+                cnt2 += 1
+                print cnt2
                 noAdapt = self.learn(phi(el[0]), el[1])
                 done = done and noAdapt
                 if(not noAdapt):
