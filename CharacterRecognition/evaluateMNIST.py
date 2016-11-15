@@ -12,6 +12,7 @@ from perceptron import Perceptron
 from multiprocessing import Process, Value, Array, Pool
 import argparse
 import random
+import math
 
 """
 Iterator that yields all training data line-wise
@@ -34,7 +35,15 @@ def getNextPic(fileName):
             # yield sample-image as 28x28 pic and the associated class
             yield np.reshape(line[1:], [28,28]).astype(int), int(line[0])
 
+def dotproduct(v1, v2):
+    return sum((a*b) for a, b in zip(v1, v2))
 
+def length(v):
+    return math.sqrt(dotproduct(v, v))
+  
+def angle(v1, v2):
+    return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+  
 def parallelNearestNeighbor(pixel,pixellist,length_arr,i):
     #for i in range(len(pixellist)):
     length_arr = np.linalg.norm(np.subtract(pixel,pixellist))
@@ -72,7 +81,9 @@ def nearestNeighbor(pixel,pixellist):
     
 def getBlock(point,rawData,numBlocksX):
     length = len(rawData)
+    
     block = np.array([int(point[0]*numBlocksX/length),int(point[1]*numBlocksX/length)])    
+    #print(str(point[0]) +","+str(point[1])+": " + str(block[0])+","+str(block[1]))      
     return block
         
 def transform(rawData):
@@ -123,6 +134,7 @@ def transform(rawData):
         old_dirpoint = dirpoint
     
     result_vec = []
+    
     for i in range(numBlocksX):
         for j in range(numBlocksX):
             result_vec.append(right[i,j])
@@ -134,15 +146,98 @@ def transform(rawData):
        
     
     return result_vec
-#
-#    result = []
-#    length = len(rawData)
-#    for i in range(0, length, int(length/numBlocks)):
-#        for j in range(0, length, int(length/numBlocks)):
-#            result.append(np.sum(rawData[i:i+int(length/numBlocks),j:j+int(length/numBlocks)]))
-#    return np.asarray(result)
-#
-#    return [np.sum(rawData)]
+
+def transform_base(rawData):
+    numBlocksX = 2
+    
+    #result = []
+    #length = len(rawData)
+    #for i in range(0, length, int(length/numBlocks)):
+    #    for j in range(0, length, int(length/numBlocks)):
+    #        result.append(np.sum(rawData[i:i+int(length/numBlocks),j:j+int(length/numBlocks)]))
+    #return np.asarray(result)
+
+    return [np.sum(rawData)]
+
+def isLeftDirection(old_dirpoint, dirpoint):
+    
+    direction3D = np.array([old_dirpoint[0],old_dirpoint[1],0])
+    
+    z = np.array([0,0,1])
+    n = np.cross(direction3D,z)
+    n2D = np.array([n[0],n[1]])
+    if np.dot(n2D,dirpoint) > 0:
+        return True
+    else:
+        return False
+    
+    return
+
+def transformB(rawData):
+    numBlocksX = 2
+    right = np.zeros((numBlocksX, numBlocksX))
+    left = np.zeros((numBlocksX, numBlocksX))
+    
+    gradientlist = []
+    for i,row in enumerate(rawData):
+        lastpixel=255
+        
+        row_high = []
+        for j,pixel in enumerate(row):
+            #if np.absolute(pixel-lastpixel) > 50:
+            if pixel-lastpixel > 10:
+                row_high.append(j)
+            lastpixel = pixel
+        if len(row_high) > 0 :
+            point1 = np.array([i,row_high[0]])
+            point2 = np.array([i,row_high[len(row_high)-1]])
+            gradientlist.append(point1)
+            if point1[0] != point2[0] or point1[0] != point2[0]:
+                gradientlist.append(point2)
+                
+      
+    direction_list = []
+    point_reduce = 2  
+    
+    while len(gradientlist) > 0:
+        point = gradientlist[0]
+        del gradientlist[0]
+        if  len(gradientlist) == 0:
+            break
+        nearpoint = nearestNeighbor(point, gradientlist)
+        
+        if len(gradientlist)%point_reduce == 0:
+            direction_list.append( np.array([ np.subtract(point,nearpoint) , np.array(nearpoint) ]) )
+        
+    #print direction_list
+    old_dirpoint = np.zeros(2)
+    for i,entry in enumerate(direction_list):
+        dirpoint = entry[0]
+        if i==0:
+            old_dirpoint = dirpoint
+            continue;
+        
+        #print prod
+        block = getBlock(entry[1],rawData,numBlocksX)
+        #print block
+        #print prod
+        if isLeftDirection(old_dirpoint,dirpoint):
+            left[block[0],block[1]] += 1
+        else:
+            right[block[0],block[1]] += 1
+        old_dirpoint = dirpoint    
+    
+    result_vec = []
+    #print right
+    #print left
+    #print ""
+    for i in range(numBlocksX):
+        for j in range(numBlocksX):
+            result_vec.append(right[i,j])
+            result_vec.append(left[i,j])
+            
+    return result_vec
+
 
 def evaluate(datum, weight_vecs, phi):
     
@@ -152,7 +247,7 @@ def evaluate(datum, weight_vecs, phi):
     for i in range(len(weight_vecs)):
         perceptrons.append(Perceptron(8,i))
         perceptrons[i].w = weight_vecs[i]
-        _,yh = perceptrons[i].classifyTrainData(phi(x))
+        _,yh = perceptrons[i].classify(phi(x))
         #print y_error        
         y_h.append(yh)
     
@@ -177,7 +272,8 @@ def calculateError(fileName, perceptron, phi):
 #        print y, y_error
         if y_error < 0:
             error += 1
-        cnt += 1
+        if y == perceptron.num:    
+            cnt += 1
     return error/cnt
 
 def splitData(inputFileName, numTrain, trainData, testData):
@@ -201,7 +297,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     
-    phi = transform
+    phi = transformB
     fileName = "mnist_first_batch.csv"
     trainData = "mnist_first_train.csv"
     testData = "mnist_first_test.csv"
@@ -217,10 +313,10 @@ if __name__ == "__main__":
     #p.join()    
     
     #for i in range(10):    
-    #p = Perceptron(8, number)
-    #print("Start learning the number: "+str(number)+ ", with "+str(iterations)+ " Iterations")
-    #print p.learnIteratorDataset(getNextPic, trainData, transform, maxIterations=iterations)
-    #print(calculateError(testData, p, phi)*100,'%')
+    p = Perceptron(8, number)
+    print("Start learning the number: "+str(number)+ ", with "+str(iterations)+ " Iterations")
+    print p.learnIteratorDataset(getNextPic, trainData, phi, maxIterations=iterations)
+    print(calculateError(testData, p, phi)*100,'%')
 
     #TEST VECTOR
     #example weigth vec for 2 
@@ -246,20 +342,20 @@ if __name__ == "__main__":
     # 10.14
     nine = [-75.22144676,9.32316996,11.42960455,-7.78341425,12.83026267,-13.61039633,-13.54682615,-1.95401298,11.75910704]
 
-    iterator = getNextPic(testData)
-    index = 0
-    if args.evaluate:
-        index = int(args.evaluate)
-    for x,y in iterator:
-        if index != 0:
-            index -= 1
+    #iterator = getNextPic(testData)
+    #index = 0
+    #if args.evaluate:
+        #index = int(args.evaluate)
+    #for x,y in iterator:
+        #if index != 0:
+            #index -= 1
             
-        else:
+        #else:
             
-            print x,y
-            value = evaluate(x,[zero,one,two,three,four,five,six,seven,eight,nine],transform)
-            print value
-            break
+            #print x,y
+            #value = evaluate(x,[zero],transform)#,one,two,three,four,five,six,seven,eight,nine],transform)
+            #print value
+            #break
         
 
             

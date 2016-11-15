@@ -53,11 +53,17 @@ class Perceptron:
     #         True if the perceptron already produced the correct output value, i.e. no adaptation has been performed
     def learn(self, x, y):
         #if y == self.num:
-            #print x,y
+        #    print x,y
         x, y_error ,yh = self.classify(x,y)
 
         if y_error < 0:
-            self.w += -yh * x
+            #print("")
+            
+            #print self.w
+            self.w += -yh * x 
+            #print self.w
+            #print self.w[0], (x[0]-self.w[0])
+            #self.w[0] += (x[0]-self.w[0])
             return False
 
         return True
@@ -95,10 +101,12 @@ class Perceptron:
                 if cnt2%500 == 0:
                     print "iteration: "+str(iterations)+", traindatas:"+str(cnt2)
                 noAdapt = self.learn(phi(el[0]), el[1])
+                
                 done = done and noAdapt
                 if(not noAdapt):
                     cnt += 1
             print self.w
+            print cnt
         return cnt
 
     def plot(self, pts=None, mini=-1, maxi=1, res=500):
