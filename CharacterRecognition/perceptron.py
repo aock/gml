@@ -89,7 +89,7 @@ class Perceptron:
         cnt = 0
         cnt2 = 0
         iterations = 0
-        print self.w
+        #print self.w
         while(not done and iterations < maxIterations):
             
            
@@ -98,15 +98,15 @@ class Perceptron:
             it = iterator(fileName)
             for el in it:
                 cnt2 += 1
-                if cnt2%500 == 0:
-                    print "iteration: "+str(iterations)+", traindatas:"+str(cnt2)
+                #if cnt2%500 == 0:
+                    #print "iteration: "+str(iterations)+", traindatas:"+str(cnt2)
                 noAdapt = self.learn(phi(el[0]), el[1])
-                
+                print("Ergebnis: " + str(el[1]))
                 done = done and noAdapt
                 if(not noAdapt):
                     cnt += 1
-            print self.w
-            print cnt
+            #print self.w
+            #print cnt
         return cnt
 
     def plot(self, pts=None, mini=-1, maxi=1, res=500):

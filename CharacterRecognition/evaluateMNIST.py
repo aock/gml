@@ -177,7 +177,7 @@ def transformB(rawData):
     numBlocksX = 2
     right = np.zeros((numBlocksX, numBlocksX))
     left = np.zeros((numBlocksX, numBlocksX))
-    
+    gradientmatrix = np.zeros((len(rawData),len(rawData)))
     gradientlist = []
     for i,row in enumerate(rawData):
         lastpixel=255
@@ -194,8 +194,15 @@ def transformB(rawData):
             gradientlist.append(point1)
             if point1[0] != point2[0] or point1[0] != point2[0]:
                 gradientlist.append(point2)
-                
+            gradientmatrix[i,row_high[0]] = 1
+            gradientmatrix[i,row_high[len(row_high)-1]] = 1
       
+    #print("")          
+    for row in gradientmatrix:
+        grad_str = ""        
+        for pixel in row:
+            grad_str += str(int(pixel))
+        #print grad_str
     direction_list = []
     point_reduce = 2  
     
@@ -247,13 +254,17 @@ def evaluate(datum, weight_vecs, phi):
     for i in range(len(weight_vecs)):
         perceptrons.append(Perceptron(8,i))
         perceptrons[i].w = weight_vecs[i]
-        _,yh = perceptrons[i].classify(phi(x))
+        _,yh = perceptrons[i].classifyTrainData(phi(x))
         #print y_error        
         y_h.append(yh)
     
-    print y_h
-    
-    return 0
+    #print y_h
+    highest_value = np.amax(y_h)
+    highest_number = random.choice(np.argwhere(y_h==highest_value).flatten())
+    if highest_value != 0:
+        return highest_number
+    else:
+        return -1
     
 
 """
@@ -313,49 +324,41 @@ if __name__ == "__main__":
     #p.join()    
     
     #for i in range(10):    
-    p = Perceptron(8, number)
-    print("Start learning the number: "+str(number)+ ", with "+str(iterations)+ " Iterations")
-    print p.learnIteratorDataset(getNextPic, trainData, phi, maxIterations=iterations)
-    print(calculateError(testData, p, phi)*100,'%')
+    #p = Perceptron(8, number)
+    #print("Start learning the number: "+str(number)+ ", with "+str(iterations)+ " Iterations")
+    #print p.learnIteratorDataset(getNextPic, trainData, phi, maxIterations=iterations)
+    #print(calculateError(testData, p, phi)*100,'%')
 
     #TEST VECTOR
     #example weigth vec for 2 
     
-    # 9.66%
-    zero = [-514.17706066,19.42001634,27.84531342,7.12038749,-9.52344336,20.94214496,-4.0804675,10.6551297,24.52467324]
-    # 7.79%
-    one = [302.64661193,-27.73111528,-63.49517691,0.89106104,-9.92501237,-14.6691409,-44.85823597,-30.07874099,-73.65624532]
-    # 9.95%
-    two = [-59.42937599,-5.46154605,1.31207586,10.44606889,-2.93922239,-10.47353565,17.89622458,-7.63600549,10.83191407]
-    # 14.37%     
-    three = [6.87819836,-7.40261509,-8.58351018,4.08096154,5.60154467,-3.39220905,-3.80732736,-5.59883534,-5.08279869]
-    # 9.6%    
-    four = [-69.09672892,12.5314921,-8.69069143,10.42321623,6.65761534,-19.17412318,-10.42162825,-3.85863103,-9.16652308]
-    # 9.65%   
-    five = [ 63.62104261,-7.32430134,4.6709081,-26.88837134,-0.35461544,-1.23544655,3.28730578,-2.69538322,5.33241149]
-    # 23.32%    
-    six = [-138.10197872,15.54776885,17.53386306,-7.38828945,1.85694135,7.29347097,8.90298238,-1.28234472,13.89760125]
-    # 11.06% 
-    seven = [ 79.24840391,-25.2052897,-25.42384614,-17.80834112,-20.88616073,-3.04920832,-4.15417432,9.456639,20.29626943]
-    # 12,56%    
-    eight = [-355.1522296,17.368128,3.32093904,3.88785582,27.2373897,27.73570413,15.93431831,-8.87876971,-15.57680764]
-    # 10.14
-    nine = [-75.22144676,9.32316996,11.42960455,-7.78341425,12.83026267,-13.61039633,-13.54682615,-1.95401298,11.75910704]
+    zero =  [   2.87829491,  -5.73140841, -9.01309232, -22.63909746, -31.76390496,  -2.71886059,  -7.90989188,  -27.518748,   -44.92102132]
+    one =   [-132.89633861,  11.10185595, 11.76006169,  25.68979536,  12.56970579,  16.35620333,  16.07407413,   12.08717335,   6.49764421]
+    two =   [  30.83712132,  -7.24160436, -0.90831706,  -2.54618851,   8.73432733, -10.87333992,  -7.38270485,  -13.38123191,  -7.755803  ]
+    three = [ -23.1337966,   -0.42699379,  9.14013299,   2.61481286,   9.01140777,  -4.27843441,   3.8003134,     0.39757907,  10.24256801]
+    four =  [ -19.40132521,   1.09636612, 10.27885506,  -5.23647612, -11.55620119,   0.36309126,   2.42993539,    0.16719847,   1.41959684]
+    five =  [  26.1540506,   -5.6844691,  -4.65461672, -12.00153841, -19.30042594,  -8.02443762,  -1.18092445,   -8.89427464,  -1.59691036]
+    six =   [ -71.75016812,  25.09578447, 29.50525741,  22.81737788,  12.61267854,  -5.60194155,  -8.66093639,  -25.76371193, -32.1713599 ]
+    seven = [ -53.41974128, -18.99121792,-19.53731192,  -8.3212861,   -4.2743606,   10.26110727,  12.8570067,    13.57498452,  14.56112293]
+    eight = [ -47.93280942,   4.40653982, -4.15675345,  -2.94340722, -10.34774916,   1.31707566,   6.21421286,  -11.39310362, -14.47241319]    
+    nine =  [-122.73930845,   9.59932189, -0.84637331, -18.09101257, -36.66537789,  20.20643921,  18.90436399,   17.04384056,  21.1127725 ]
 
-    #iterator = getNextPic(testData)
-    #index = 0
-    #if args.evaluate:
-        #index = int(args.evaluate)
-    #for x,y in iterator:
-        #if index != 0:
-            #index -= 1
+    iterator = getNextPic(testData)
+    index = 0
+    if args.evaluate:
+        index = int(args.evaluate)
+    for x,y in iterator:
+        if index != 0:
+            index -= 1
             
         #else:
             
             #print x,y
-            #value = evaluate(x,[zero],transform)#,one,two,three,four,five,six,seven,eight,nine],transform)
-            #print value
-            #break
+            value = evaluate(x,[zero,one,two,three,four,five,six,seven,eight,nine],phi)
+            #print "Evaluation:"            
+            print("Real value: " + str(y) + ", Recognized value: " + str(value))
+        else:            
+            break
         
 
             
