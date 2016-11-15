@@ -65,4 +65,5 @@ if __name__ == "__main__":
     for i in range(10):
         p = Perceptron(1, i)
         p.learnIteratorDataset(getNextPic, fileName, transform, calculateError, maxIterations=1)
-        print str(i) + ': ' + str(calculateError(fileName, p, phi) * 100) + '%'
+        testFile = "mnist_first_test.csv"
+        print str(i) + ': ' + str(calculateError(testFile, p, phi) * 100) + '%'

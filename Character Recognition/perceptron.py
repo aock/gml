@@ -47,7 +47,8 @@ class Perceptron:
         y = 1 if y == self.idx else -1
         x, yh = self.classify(x)
         if int(y) != int(yh):
-            self.w += y * x
+            tau = max(0, 1 - y * np.dot(self.w, x) / (np.linalg.norm(x)**2))
+            self.w += tau * y * x
             return False
         return True
 
