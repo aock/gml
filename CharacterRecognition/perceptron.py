@@ -33,7 +33,7 @@ class Perceptron:
     def classify(self, x,y):
         x, yh = self.classifyTrainData(x)
         y2 = self.classify2(y)
-        return x, np.sign(np.dot(self.w, x))*y2 ,yh
+        return x, yh*y2 ,yh
 
     def classifyTrainData(self,x):
         x = np.insert(x, 0, 1)
@@ -52,6 +52,8 @@ class Perceptron:
     # @return False if the perceptron did not produce the desired output value, i.e. the learning adaptation has been performed
     #         True if the perceptron already produced the correct output value, i.e. no adaptation has been performed
     def learn(self, x, y):
+        #if y == self.num:
+            #print x,y
         x, y_error ,yh = self.classify(x,y)
 
         if y_error < 0:
@@ -81,6 +83,7 @@ class Perceptron:
         cnt = 0
         cnt2 = 0
         iterations = 0
+        print self.w
         while(not done and iterations < maxIterations):
             
            
@@ -89,11 +92,13 @@ class Perceptron:
             it = iterator(fileName)
             for el in it:
                 cnt2 += 1
-                print cnt2
+                if cnt2%500 == 0:
+                    print "iteration: "+str(iterations)+", traindatas:"+str(cnt2)
                 noAdapt = self.learn(phi(el[0]), el[1])
                 done = done and noAdapt
                 if(not noAdapt):
                     cnt += 1
+            print self.w
         return cnt
 
     def plot(self, pts=None, mini=-1, maxi=1, res=500):
