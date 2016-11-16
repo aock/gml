@@ -254,7 +254,7 @@ def evaluate(datum, weight_vecs, phi):
     for i in range(len(weight_vecs)):
         perceptrons.append(Perceptron(8,i))
         perceptrons[i].w = weight_vecs[i]
-        _,yh = perceptrons[i].classifyTrainData(phi(x))
+        _,yh = perceptrons[i].classifyTrainData(phi(datum))
         #print y_error        
         y_h.append(yh)
     
@@ -297,41 +297,25 @@ def splitData(inputFileName, numTrain, trainData, testData):
         else:
             testDataFile.write(line)
 
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--number", help="Learn Number")
-    parser.add_argument("-i", "--iterations", help="Dataset Iterations")  
-    parser.add_argument("-e", "--evaluate", help="Evaluate Datum")  
-    
-    args = parser.parse_args()
-
-    
-    phi = transformB
-    fileName = "mnist_first_batch.csv"
-    trainData = "mnist_first_train.csv"
-    testData = "mnist_first_test.csv"
-    number = 1    
+def learnMain(args, trainData ,phi):
+    number = 0
     iterations = 1
+    
     if args.number:
         number = int(args.number)
     if args.iterations:
         iterations = int(args.iterations)
-#    splitData(fileName, 30000, trainData, testData)
-    #p = Process(target=parallelNearestNeighbor, args=(pixel,pixellist,length_arr))
-    #p.start()
-    #p.join()    
+        
+    p = Perceptron(8, number)
+    print("Start learning the number: "+str(number)+ ", with "+str(iterations)+ " Iterations")
+    print p.learnIteratorDataset(getNextPic, trainData, phi, maxIterations=iterations)
     
-    #for i in range(10):    
-    #p = Perceptron(8, number)
-    #print("Start learning the number: "+str(number)+ ", with "+str(iterations)+ " Iterations")
-    #print p.learnIteratorDataset(getNextPic, trainData, phi, maxIterations=iterations)
     #print(calculateError(testData, p, phi)*100,'%')
 
-    #TEST VECTOR
-    #example weigth vec for 2 
+
+def evaluationMain(args, testData, phi):
     
+    #example learned Weights 20 Iterations
     zero =  [   2.87829491,  -5.73140841, -9.01309232, -22.63909746, -31.76390496,  -2.71886059,  -7.90989188,  -27.518748,   -44.92102132]
     one =   [-132.89633861,  11.10185595, 11.76006169,  25.68979536,  12.56970579,  16.35620333,  16.07407413,   12.08717335,   6.49764421]
     two =   [  30.83712132,  -7.24160436, -0.90831706,  -2.54618851,   8.73432733, -10.87333992,  -7.38270485,  -13.38123191,  -7.755803  ]
@@ -342,24 +326,60 @@ if __name__ == "__main__":
     seven = [ -53.41974128, -18.99121792,-19.53731192,  -8.3212861,   -4.2743606,   10.26110727,  12.8570067,    13.57498452,  14.56112293]
     eight = [ -47.93280942,   4.40653982, -4.15675345,  -2.94340722, -10.34774916,   1.31707566,   6.21421286,  -11.39310362, -14.47241319]    
     nine =  [-122.73930845,   9.59932189, -0.84637331, -18.09101257, -36.66537789,  20.20643921,  18.90436399,   17.04384056,  21.1127725 ]
-
+    
     iterator = getNextPic(testData)
     index = 0
     if args.evaluate:
         index = int(args.evaluate)
-    for x,y in iterator:
-        if index != 0:
-            index -= 1
-            
-        #else:
-            
-            #print x,y
+    print args.all
+    if args.all:
+        for x,y in iterator:
             value = evaluate(x,[zero,one,two,three,four,five,six,seven,eight,nine],phi)
-            #print "Evaluation:"            
             print("Real value: " + str(y) + ", Recognized value: " + str(value))
-        else:            
-            break
-        
-
             
+    else:
+        for x,y in iterator:
+            if index != 0:
+                index -= 1
+            else:
+                value = evaluate(x,[zero,one,two,three,four,five,six,seven,eight,nine],phi)
+                #print "Evaluation:"            
+                print("Real value: " + str(y) + ", Recognized value: " + str(value))
+                break
+
+
+
+if __name__ == "__main__":
+    #python evaluateMNIST.py -n 8 -i 10 -> learn the number 8
+    #python evaluateMNIST.py -e 10 -> evaluate until row of testdata
+    #python evaluateMNIST.py -a -in mnist_first_batch.csv -s 0 -> evaluate all testdata. inputFile is the whole test dataset
+    
+         
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--number", help="Learn Number")
+    parser.add_argument("-i", "--iterations", help="Dataset Iterations")  
+    parser.add_argument("-e", "--evaluate", help="Evaluate until row")
+    parser.add_argument("-a", "--all",help="Evaluate all testData",action="store_true",default=False)
+    parser.add_argument("-s","--splitData",help="Split data into train and test data. Value is size of TrainData")
+    parser.add_argument("-in","--inputData",help="inputData File csv")
+    
+    args = parser.parse_args()
+
+    
+    phi = transformB
+    fileName = "mnist_first_batch.csv"
+    if args.inputData:
+        fileName = args.inputData
+    trainData = "mnist_first_train.csv"
+    testData = "mnist_first_test.csv"
+    
+    if args.splitData:
+        splitData(fileName,int(args.splitData),trainData,testData)
+
+    if args.evaluate or args.all:
+        evaluationMain(args,testData,phi)
+    elif args.number:
+        learnMain(args, trainData, phi)
+    else:
+        parser.print_help()
     
