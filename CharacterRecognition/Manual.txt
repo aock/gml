@@ -1,0 +1,8 @@
+Version Required: Python 2.7
+
+1. Kopiere die Datei 'mnist_first_test.csv' mit dem Testdatensatz in das Verzeichnis 'Character Recognition'
+2. Führe die Datei 'evaluateMNIST.py' aus
+3. Prozentuale Ausgabe aller falsch klassifizierten Testdaten in der Konsole
+
+Aus Zeitgründen wurde der Lernprozess auskommentiert und stattdessen ein mit diesem Lernverfahren bereits 
+zuvor trainierter Gewichtsvektor des Perzeptrons nach 20 Iterationen verwendet!
