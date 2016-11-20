@@ -29,7 +29,7 @@ def quadratic(x, a, b, c):
 class Perceptron:
     def __init__(self, dim):
         self.w = np.random.rand(10, dim+1)
-#        self.w = np.zeros(dim+1)
+        self.best = None
 
     def classify(self, x):
         x = np.insert(x, 0, 1)
@@ -53,16 +53,31 @@ class Perceptron:
     # @param dataset The complete dataset given as a 2D list [inputvalues, outputvalues]
     # with inputvalues being a list of all input values which again are a list of coordinates for each dimension
     # and output values a list of all desired output values
-    def learnDataset(self, dataset):
+    def learnDataset(self, dataset, calcError, maxIterations=1):
         done = False
         cnt = 0
-        while not done:
+        iterations = 0
+        pocket_w = np.copy(self.w)
+        self.best = calcError(dataset, self)
+        print 'Start Learning'
+        while not done and iterations < maxIterations:
             done = True
+            iterations += 1
             for el in dataset:
+                prev_w = np.copy(self.w)
                 noAdapt = self.learn(el[0], el[1])
                 done = done and noAdapt
+#                print np.linalg.norm(prev_w - self.w)
+                if np.linalg.norm(prev_w - self.w) > 8.5:
+                    err = calcError(dataset, self)
+                    if err < self.best:
+                        pocket_w = np.copy(self.w)
+                        self.best = err
+                        print self.best
                 if not noAdapt:
                     cnt += 1
+        print 'Finish Learning'
+        self.w = np.copy(pocket_w)
         return cnt
     
     def learnIteratorDataset(self, iterator, fileName, phi, maxIterations=1):
