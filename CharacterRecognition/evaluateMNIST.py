@@ -16,6 +16,29 @@ import argparse
 import random
 import math
 
+import sys
+
+# Print iterations progress
+def printProgress (iteration, total, prefix = '', suffix = '', decimals = 1, barLength = 100):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        barLength   - Optional  : character length of bar (Int)
+    """
+    formatStr = "{0:." + str(decimals) + "f}"
+    percent = formatStr.format(100 * (iteration / float(total)))
+    filledLength = int(round(barLength * iteration / float(total)))
+    bar = '█' * filledLength + '-' * (barLength - filledLength)
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percent, '%', suffix)),
+    if iteration == total:
+        sys.stdout.write('\n')
+    sys.stdout.flush()
+
 
 def getNextPic(fileName):
     """
@@ -47,10 +70,16 @@ def extract(fileName, outFileName, phi):
     @param phi The function to extract the features from the input file
     """
     outFile = open(outFileName, 'w')
+    counter = 0
+    l = 40000
     with open(fileName) as f:
         content = csv.reader(f)
+        printProgress(counter, l, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
         for idx, line in enumerate(content):
             features = phi(np.reshape(line[1:], [28,28]).astype(int))
+            if counter%500 ==0:
+                printProgress(counter, l, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
+            counter += 1
             for i in range(len(features) + 1):
                 if i < len(features):
                     outFile.write(str(features[i]) + ',')
@@ -63,7 +92,7 @@ def readFile(fileName):
     with open(fileName) as f:
         content = csv.reader(f)
         for idx, line in enumerate(content):
-            data.append(np.array([np.asarray(line[0:8]).astype(float), int(line[8])]))
+            data.append(np.array([np.asarray(line[0:11]).astype(float), int(line[11])]))
 
     return data
 
@@ -87,6 +116,13 @@ def transform(rawData):
     left = np.zeros((numBlocksX, numBlocksX))
     gradient_matrix = np.zeros((len(rawData), len(rawData)))
     gradient_list = []
+    
+    #brect (min(x,y) , max(x,y))    
+    brect = np.zeros((2,2))
+    brect[0][0] = 29
+    brect[0][1] = 29
+    brect_sizeX = 0
+    brect_sizeY = 0
 
     #Contour
 
@@ -97,6 +133,9 @@ def transform(rawData):
         
 
         for j, pixel in enumerate(row):
+            
+                     
+            
             if np.absolute(pixel - last_pixel) > 50:
  #           if pixel - last_pixel > 10:
                 row_high.append(j)
@@ -111,32 +150,56 @@ def transform(rawData):
             gradient_matrix[i, row_high[0]] = 1
             gradient_matrix[i, row_high[len(row_high)-1]] = 1
             
+            #brect
+            if point1[0] < brect[0][0]:
+                brect[0][0] = point1[0]
+            if point1[1] < brect[0][1]:
+                brect[0][1] = point1[1]
+            if point1[0] > brect[1][0]:
+                brect[1][0] = point1[0]
+            if point1[1] > brect[1][1]:
+                brect[1][1] = point1[1]
+                
+            if point2[0] < brect[0][0]:
+                brect[0][0] = point2[0]
+            if point2[1] < brect[0][1]:
+                brect[0][1] = point2[1]
+            if point2[0] > brect[1][0]:
+                brect[1][0] = point2[0]
+            if point2[1] > brect[1][1]:
+                brect[1][1] = point2[1]
+            
+
+    brect[0][0]=0
+    brect[0][1]=0
+    brect[1][0]=27
+    brect[1][1]=27
 
     point_reduce = 2
     direction_list = []
     counter = 1
+    brect_sizeX = int(np.absolute(brect[0][0] - brect[1][0]) + 1)
+    brect_sizeY = int(np.absolute(brect[0][1] - brect[1][1]) + 1)
+    #print "dhu"    
+    #print brect_sizeX
+    #print brect_sizeY
+    x_histogram = np.zeros( brect_sizeX)
+    y_histogram = np.zeros(brect_sizeY )
     #gradient
     
     index=0
     point = gradient_list[index]
-    #brect (min(x,y) , max(x,y))    
-    brect = np.zeros((2,2))
-    brect[0][0] = 29
-    brect[0][1] = 29
+    
+    
     
     while len(gradient_list) > 0:
         
+        #x_histogram[point[0] - brect[0][0]] += 1  
+        y_histogram[point[1] - brect[0][1]] += 1
+        
         gradient_matrix[point[0],point[1]] = counter
         counter += 1
-        #brect
-        if point[0] < brect[0][0]:
-            brect[0][0] = point[0]
-        if point[1] < brect[0][1]:
-            brect[0][1] = point[1]
-        if point[0] > brect[1][0]:
-            brect[1][0] = point[0]
-        if point[1] > brect[1][1]:
-            brect[1][1] = point[1]
+        
 
         del gradient_list[index]
 
@@ -146,9 +209,9 @@ def transform(rawData):
         next_index = nearestNeighbor(point, gradient_list)
         next_point = gradient_list[next_index]
 
-        #if len(gradient_list) % point_reduce == 0:
-        direction_list.append(np.array([np.subtract(point, next_point), np.array(next_point)]))
-        point = next_point
+        if len(gradient_list) % point_reduce == 0:
+            direction_list.append(np.array([np.subtract(point, next_point), np.array(next_point)]))
+            point = next_point
         index = next_index
             
     gradient_matrix[brect[0][0]][brect[0][1]] = 777
@@ -156,6 +219,17 @@ def transform(rawData):
 
     #printIntMatrix(gradient_matrix)
     #left right 
+    peek_index1 = np.argmax(y_histogram)
+    peek_position1 = peek_index1/brect_sizeY
+    y_histogram[peek_index1] = 0
+    
+    peek_index2 = np.argmax(y_histogram)
+    peek_position2 = peek_index2/brect_sizeY
+    y_histogram[peek_index2] = 0    
+    
+    #print y_histogram
+    #print peek_position1
+    #print peek_position2
 
     old_dirpoint = np.zeros(2)
     for i, entry in enumerate(direction_list):
@@ -178,6 +252,10 @@ def transform(rawData):
             result_vec.append(right[i, j])
             result_vec.append(left[i, j])
     
+    result_vec.append(peek_position1)
+    result_vec.append(peek_position2)
+    result_vec.append(brect_sizeX/brect_sizeY) 
+    #print result_vec
     return result_vec
 
 
@@ -257,10 +335,10 @@ def calculateIteratorError(fileName, perceptron, phi):
 
 if __name__ == "__main__":
     np.random.seed(12345)
-#    extract("mnist_first_batch.csv", "mnist_features_batch.csv", transform)
-#    extract("mnist_first_val.csv", "mnist_features_val.csv", transform)
-    p = Perceptron(8)
+    extract("mnist_first_batch.csv", "mnist_features_batch.csv", transform)
+    extract("mnist_first_val.csv", "mnist_features_val.csv", transform)
+    p = Perceptron(11)
     trainData = readFile("mnist_features_batch.csv")
     valData = readFile("mnist_features_val.csv")
-    p.learnDataset(trainData, valData, calculateError, maxIterations=1)
+    p.learnDataset(trainData, valData, calculateError, maxIterations=10)
     print str(calculateError(valData, p) * 100) + '%'
