@@ -51,7 +51,7 @@ def extract(fileName, phi):
         content = csv.reader(f)
         for idx, line in enumerate(content):
             data.append(np.array([phi(np.reshape(line[1:], [28,28]).astype(int)), int(line[0])]))
-            print line[0]
+            
     return data
 
 def printIntMatrix(m):
@@ -103,7 +103,6 @@ def transform(rawData):
     direction_list = []
     counter = 1
     #gradient
-    print len(gradient_list) 
     
     index=0
     point = gradient_list[index]
@@ -142,7 +141,7 @@ def transform(rawData):
     gradient_matrix[brect[0][0]][brect[0][1]] = 777
     gradient_matrix[brect[1][0]][brect[1][1]] = 777
 
-    printIntMatrix(gradient_matrix)
+    #printIntMatrix(gradient_matrix)
     #left right 
 
     old_dirpoint = np.zeros(2)
@@ -153,7 +152,6 @@ def transform(rawData):
             continue
         #block = getBlock(entry[1], rawData, numBlocksX)
         block = getBlock2(entry[1], brect, numBlocksX)
-        print block
         
         if isLeftDirection(old_dirpoint, dirpoint):
             left[block[0], block[1]] += 1
@@ -166,7 +164,7 @@ def transform(rawData):
         for j in range(numBlocksX):
             result_vec.append(right[i, j])
             result_vec.append(left[i, j])
-
+    
     return result_vec
 
 
