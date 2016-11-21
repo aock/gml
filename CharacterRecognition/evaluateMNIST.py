@@ -203,5 +203,5 @@ if __name__ == "__main__":
     p = Perceptron(8)
     trainData = readFile("mnist_features_batch.csv")
     valData = readFile("mnist_features_val.csv")
-    p.learnDataset(trainData, valData, calculateError, maxIterations=1)
+    p.learnDataset(trainData, valData, calculateError, maxIterations=2)
     print str(calculateError(valData, p) * 100) + '%'
