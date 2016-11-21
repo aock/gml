@@ -44,13 +44,15 @@ class Perceptron:
     def learn(self, x, y):
         x, yh = self.classify(x)
         if int(y) != int(yh):
-            if np.dot(self.w[y], x) - np.dot(self.w[yh], x) < 1:
-                loss = 1 - np.dot(self.w[y], x) + np.dot(self.w[yh], x)
-            else:
-                loss = 0
-            tau = loss / (2 * np.linalg.norm(x)**2)
-            self.w[yh] -= tau * x
-            self.w[y] += tau * x
+ #           if np.dot(self.w[y], x) - np.dot(self.w[yh], x) < 1:
+ #               loss = 1 - np.dot(self.w[y], x) + np.dot(self.w[yh], x)
+ #           else:
+ #               loss = 0
+ #           tau = loss / (2 * np.linalg.norm(x)**2)
+ #           self.w[yh] -= tau * x
+ #           self.w[y] += tau * x
+            self.w[yh] -= x
+            self.w[y] += x
             return False
         return True
 
@@ -58,7 +60,7 @@ class Perceptron:
     # @param dataset The complete dataset given as a 2D list [inputvalues, outputvalues]
     # with inputvalues being a list of all input values which again are a list of coordinates for each dimension
     # and output values a list of all desired output values
-    def learnDataset(self, dataset, calcError, maxIterations=1):
+    def learnDataset(self, dataset, validation, calcError, maxIterations=1):
         done = False
         cnt = 0
         iterations = 0
@@ -73,8 +75,8 @@ class Perceptron:
                 noAdapt = self.learn(el[0], el[1])
                 done = done and noAdapt
 #                print np.linalg.norm(prev_w - self.w)
-                if np.linalg.norm(prev_w - self.w) > 0.5:
-                    err = calcError(dataset, self)
+                if np.linalg.norm(prev_w - self.w) > 8.5:
+                    err = calcError(validation, self)
                     if err < self.best:
                         pocket_w = np.copy(self.w)
                         self.best = err
@@ -82,7 +84,7 @@ class Perceptron:
                 if not noAdapt:
                     cnt += 1
         print 'Finish Learning'
-#        self.w = np.copy(pocket_w)
+        self.w = np.copy(pocket_w)
         return cnt
     
     def learnIteratorDataset(self, iterator, fileName, phi, maxIterations=1):
