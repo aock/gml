@@ -3,9 +3,12 @@
 Created on Wed Jun 29 16:36:16 2016
 
 @author: joschnei
+@author: mgreshake
+@author: amock
 """
 
 from __future__ import division
+from copy import deepcopy
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import patches as patches
@@ -44,13 +47,13 @@ class Perceptron:
     def learn(self, x, y):
         x, yh = self.classify(x)
         if int(y) != int(yh):
- #           if np.dot(self.w[y], x) - np.dot(self.w[yh], x) < 1:
- #               loss = 1 - np.dot(self.w[y], x) + np.dot(self.w[yh], x)
- #           else:
- #               loss = 0
- #           tau = loss / (2 * np.linalg.norm(x)**2)
- #           self.w[yh] -= tau * x
- #           self.w[y] += tau * x
+#            if np.dot(self.w[y], x) - np.dot(self.w[yh], x) < 1:
+#                loss = 1 - np.dot(self.w[y], x) + np.dot(self.w[yh], x)
+#            else:
+#                loss = 0
+#            tau = loss / (2 * np.linalg.norm(x)**2)
+#            self.w[yh] -= tau * x
+#            self.w[y] += tau * x
             self.w[yh] -= x
             self.w[y] += x
             return False
@@ -70,12 +73,15 @@ class Perceptron:
         while not done and iterations < maxIterations:
             done = True
             iterations += 1
-            for el in dataset:
+            trainset = deepcopy(dataset)
+            while len(trainset) > 0:
+                idx = np.random.randint(len(trainset))
+                el = trainset[idx]
                 prev_w = np.copy(self.w)
                 noAdapt = self.learn(el[0], el[1])
                 done = done and noAdapt
 #                print np.linalg.norm(prev_w - self.w)
-                if np.linalg.norm(prev_w - self.w) > 8.5:
+                if np.linalg.norm(prev_w - self.w) > 10.0 - iterations:
                     err = calcError(validation, self)
                     if err < self.best:
                         pocket_w = np.copy(self.w)
@@ -83,6 +89,7 @@ class Perceptron:
 #                        print self.best
                 if not noAdapt:
                     cnt += 1
+                del trainset[idx]
         print 'Finish Learning'
         self.w = np.copy(pocket_w)
         return cnt
