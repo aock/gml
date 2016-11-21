@@ -39,18 +39,31 @@ def getNextPic(fileName):
             yield np.reshape(line[1:], [28,28]).astype(int), int(line[0])
 
 
-def extract(fileName, phi):
+def extract(fileName, outFileName, phi):
     """
-    Extract the features of data from an input file
+    Extract the features of data from an input file to another file
     @param fileName The name of the file that is to be read
+    @param outFileName The name of the file that is to be written
     @param phi The function to extract the features from the input file
-    @return An array with the extracted features and the desired output
     """
+    outFile = open(outFileName, 'w')
+    with open(fileName) as f:
+        content = csv.reader(f)
+        for idx, line in enumerate(content):
+            features = phi(np.reshape(line[1:], [28,28]).astype(int))
+            for i in range(len(features) + 1):
+                if i < len(features):
+                    outFile.write(str(features[i]) + ',')
+                else:
+                    outFile.write(str(int(line[0])) + '\n')
+
+
+def readFile(fileName):
     data = []
     with open(fileName) as f:
         content = csv.reader(f)
         for idx, line in enumerate(content):
-            data.append(np.array([phi(np.reshape(line[1:], [28,28]).astype(int)), int(line[0])]))
+            data.append(np.array([np.asarray(line[0:8]).astype(float), int(line[8])]))
     return data
 
 
@@ -154,11 +167,13 @@ def isLeftDirection(old_dirpoint, dirpoint):
 
 def calculateError(dataset, perceptron):
     error = 0
+    cnt = 0
     for data in dataset:
         _, yh = perceptron.classify(data[0])
         if data[1] != yh:
             error += 1
-    return error
+        cnt += 1
+    return error/cnt
 
 
 def calculateIteratorError(fileName, perceptron, phi):
@@ -183,9 +198,10 @@ def calculateIteratorError(fileName, perceptron, phi):
 
 if __name__ == "__main__":
     np.random.seed(12345)
+#    extract("mnist_first_batch.csv", "mnist_features_batch.csv", transform)
+#    extract("mnist_first_val.csv", "mnist_features_val.csv", transform)
     p = Perceptron(8)
-    fileName = "mnist_first_batch.csv"
-    data = extract(fileName, transform)
-    p.learnDataset(data, calculateError, maxIterations=1)
-    fileName = "mnist_first_test.csv"
-    print str(calculateIteratorError(fileName, p, transform) * 100) + '%'
+    trainData = readFile("mnist_features_batch.csv")
+    valData = readFile("mnist_features_val.csv")
+    p.learnDataset(trainData, valData, calculateError, maxIterations=1)
+    print str(calculateError(valData, p) * 100) + '%'
