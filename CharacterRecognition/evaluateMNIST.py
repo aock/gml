@@ -74,12 +74,12 @@ def extract(fileName, outFileName, phi):
     l = 40000
     with open(fileName) as f:
         content = csv.reader(f)
-        printProgress(counter, l, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
+#        printProgress(counter, l, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
         for idx, line in enumerate(content):
             features = phi(np.reshape(line[1:], [28,28]).astype(int))
-            if counter%500 ==0:
-                printProgress(counter, l, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
-            counter += 1
+#            if counter%500 ==0:
+#                printProgress(counter, l, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
+#            counter += 1
             for i in range(len(features) + 1):
                 if i < len(features):
                     outFile.write(str(features[i]) + ',')
@@ -335,11 +335,11 @@ def calculateIteratorError(fileName, perceptron, phi):
 
 if __name__ == "__main__":
     np.random.seed(12345)
-    extract("mnist_first_batch.csv", "mnist_features_batch.csv", transform)
-    extract("mnist_first_val.csv", "mnist_features_val.csv", transform)
+#    extract("mnist_first_batch.csv", "mnist_features_batch.csv", transform)
+#    extract("mnist_first_val.csv", "mnist_features_val.csv", transform)
     p = Perceptron(11)
     trainData = readFile("mnist_features_batch.csv")
     valData = readFile("mnist_features_val.csv")
 
-    p.learnDataset(trainData, valData, calculateError, maxIterations=10)
+    p.learnDataset(trainData, valData, calculateError, maxIterations=2)
     print str(calculateError(valData, p) * 100) + '%'

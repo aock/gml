@@ -36,7 +36,8 @@ class Perceptron:
 
     def classify(self, x):
         x = np.insert(x, 0, 1)
-        return x, np.argmax(np.dot(self.w, x))
+        return x, np.argmax(np.dot(self.w, x) / np.dot(np.linalg.norm(self.w, axis=1), np.linalg.norm(x)))
+#        return x, np.argmax(np.dot(self.w, x))
 
     # Perform a learning step for a given training datum with input values x
     # and output value y in {-1,1}
@@ -81,17 +82,17 @@ class Perceptron:
                 noAdapt = self.learn(el[0], el[1])
                 done = done and noAdapt
 #                print np.linalg.norm(prev_w - self.w)
-                if np.linalg.norm(prev_w - self.w) > 10.0 - iterations:
+                if np.linalg.norm(prev_w - self.w) > 15.0 - iterations:
                     err = calcError(validation, self)
                     if err < self.best:
                         pocket_w = np.copy(self.w)
                         self.best = err
-#                        print self.best
+                        print self.best
                 if not noAdapt:
                     cnt += 1
                 del trainset[idx]
         print 'Finish Learning'
-        self.w = np.copy(pocket_w)
+#        self.w = np.copy(pocket_w)
         return cnt
     
     def learnIteratorDataset(self, iterator, fileName, phi, maxIterations=1):
