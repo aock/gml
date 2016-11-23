@@ -81,12 +81,12 @@ class Perceptron:
                 noAdapt = self.learn(el[0], el[1])
                 done = done and noAdapt
 #                print np.linalg.norm(prev_w - self.w)
-                if np.linalg.norm(prev_w - self.w) > 10.0 - iterations:
+                if np.linalg.norm(prev_w - self.w) > 11.0 - iterations:
                     err = calcError(validation, self)
                     if err < self.best:
                         pocket_w = np.copy(self.w)
                         self.best = err
-#                        print self.best
+                        print self.best
                 if not noAdapt:
                     cnt += 1
                 del trainset[idx]
