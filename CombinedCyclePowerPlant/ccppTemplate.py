@@ -10,6 +10,7 @@ Template for the CCPP-Challenge
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.svm import SVR
 
 """
 Calcuate the MSE on a given dataset
@@ -26,6 +27,16 @@ def calculateError(h, x, y):
         error += (yh - y)**2
     error /= len(x)
     return error
+    
+def calculateErrorSVR(svr, x, y):
+    error = 0
+    
+    yh = svr.predict(x)
+    for i,el in enumerate(yh):
+        error += (el-y[i])**2
+    error /= len(x)
+    return error
+    
 
 
 def normalize(x):
@@ -111,18 +122,56 @@ class RLS:
 if __name__ == "__main__":
     # Read data from file
     data = np.genfromtxt("ccpp_first_batch.txt", delimiter=",")
+    np.random.shuffle(data)
     # Seperate data in input and output values
+    
+    
 
     dataX = [list( np.array(el)[[0,1,2,3]]) for el in data]
+    
     dataY = [el[4] for el in data]
+    
+    
     # Normalize input data
     dataX = normalize(np.asarray(dataX))
+    
+    num_train_data = 1000
+    
+    trainX = dataX[:num_train_data]
+    trainY = dataY[:num_train_data]
+    testX = dataX[num_train_data:]
+    testY = dataY[num_train_data:]
+    
+    
+    
+    #svr_lin = SVR(kernel='linear', C=1e3)  
+    svr_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1)
+    
+    #y_lin = svr_lin.fit(dataX, dataY).predict(dataX)
+    svr_rbf.fit(trainX, trainY)
+    y_in_sample_rbf = svr_rbf.predict(trainX)
+    y_out_of_sample_rbf = svr_rbf.predict(testX)
+    
+    print('In-Sample-Error SVR RBF:', calculateErrorSVR(svr_rbf, trainX, trainY) )
+    print('Out-Of-Sample-Error SVR RBF:', calculateErrorSVR(svr_rbf, testX, testY) )    
+    
+    lw = 2
+    #plt.scatter([x[0] for x in dataX], dataY, color='darkorange', label='data')
+    #plt.plot(dataX, y_lin, color='c', lw=lw, label='Linear model')
+    #plt.plot(dataX, y_rbf, 'bo', lw=lw, label='RBF model')
+    #plt.plot([x[0] for x in dataX], y_poly, 'bo', lw=lw, label='Polynomial model')
+    
+    #plt.show()
+    
+    #print('In-Sample-Error SVR Linear:', calculateErrorSVR(svr_lin, dataX, dataY) )
+    
+    
     # Create hypothesis set
-    h = GLT(100, len(dataX[0]))
+    #h = GLT(100, len(dataX[0]))
     # Initialize learning algorithm
-    l = RLS(100 * len(dataX[0]), 1)
+    #l = RLS(100 * len(dataX[0]), 1)
     # Learn on the training data
-    h.learn(dataX, dataY, l)
+    #h.learn(dataX, dataY, l)
     # Display the in-sample-error
-    print('In-Sample-Error:', calculateError(h, dataX, dataY))
+    #print('In-Sample-Error:', calculateError(h, dataX, dataY))
     #plot(dataX, [h.evaluate(i)[0] for i in dataX], dataY)
