@@ -9,6 +9,7 @@ Template for the CCPP-Challenge
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 """
 Calcuate the MSE on a given dataset
@@ -26,10 +27,17 @@ def calculateError(h, x, y):
     error /= len(x)
     return error
 
+
 def normalize(x):
     for i in range(len(x[0])):
+        x[:,i] -= np.amin(x[:,i])
         x[:,i] /= np.amax(x[:,i])
     return x
+
+def plot(x, y1, y2):
+    plt.plot(x, y2, 'bo', x, y1, 'ro')
+    plt.show()
+
 
 """
 This class contains a linear regressor on a GLT-approximator
@@ -104,15 +112,17 @@ if __name__ == "__main__":
     # Read data from file
     data = np.genfromtxt("ccpp_first_batch.txt", delimiter=",")
     # Seperate data in input and output values
-    dataX = [el[0:4] for el in data]
+
+    dataX = [list( np.array(el)[[0,1,2,3]]) for el in data]
     dataY = [el[4] for el in data]
     # Normalize input data
     dataX = normalize(np.asarray(dataX))
     # Create hypothesis set
-    h = GLT(100, 4)
+    h = GLT(100, len(dataX[0]))
     # Initialize learning algorithm
-    l = RLS(100 * 4, 1)
+    l = RLS(100 * len(dataX[0]), 1)
     # Learn on the training data
     h.learn(dataX, dataY, l)
     # Display the in-sample-error
     print('In-Sample-Error:', calculateError(h, dataX, dataY))
+    #plot(dataX, [h.evaluate(i)[0] for i in dataX], dataY)
