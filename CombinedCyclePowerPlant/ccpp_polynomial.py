@@ -9,7 +9,7 @@ Template for the CCPP-Challenge
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 """
 Calcuate the MSE on a given dataset
@@ -36,48 +36,41 @@ def normalize(x):
 
 
 """
-This class contains a linear regressor on a GLT-approximator
+This class contains a linear regressor on a polynomial-approximator
 for 1D problems
 """
-class GLT:
+class Polynomial():
     """
     Constructor
-    The nodes are implicity placed equidistantly on [-1;1]
-    For a general solution neither the input interval of [-1;1] nor the
-    equidistant positioning should be assumed
-    @param deg Number of nodes
+    @param deg The degree of the polynomial
     """
-    def __init__(self, deg, dim):
+
+    def __init__(self, deg):
         self.deg = deg
-        self.w = np.zeros(deg * dim)
-        self.nodes = [np.linspace(0, 1, deg) for i in range(dim)]
-        self.dist = self.nodes[0][1] - self.nodes[0][0]
+        self.w = np.zeros(deg + 1)
 
     """
     Tansformation function (phi)
     @param x 1D-input value to transform
     @return phi(x)
     """
+
     def transform(self, x):
-        out = []
-        for i in range(len(x)):
-            phi = np.zeros(self.deg)
-            for j in range(self.deg - 1):
-                if self.nodes[i][j] <= x[i] and x[i] <= self.nodes[i][j+1]:
-                    phi[j] = 1 - ((x[i] - self.nodes[i][j]) / self.dist)
-                    phi[j+1] = 1 - phi[j]
-                    break
-            out.append(phi)
-        return np.hstack(out)
+
+        func = [x_dim ** i for x_dim in x for i in range(self.deg + 1) ]
+        for x_ in x:
+            func.append(np.sin(x_))
+        return func
 
     """
     Performs the learning of the approximator
     @param X Matrix (Vector for 1D) containing all x-input values
     @param y Vector of corresponding output values
     """
+
     def learn(self, X, y):
         Xtilde = [self.transform(x) for x in X]
-        Xdagger = np.linalg.pinv(Xtilde)
+        Xdagger = np.linalg.pinv(np.array(Xtilde))
         self.w = np.dot(Xdagger, y)
 
     """

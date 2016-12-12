@@ -9,7 +9,7 @@ Template for the CCPP-Challenge
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 """
 Calcuate the MSE on a given dataset
