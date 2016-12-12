@@ -75,10 +75,15 @@ class GLT:
     @param X Matrix (Vector for 1D) containing all x-input values
     @param y Vector of corresponding output values
     """
-    def learn(self, X, y):
-        Xtilde = [self.transform(x) for x in X]
-        Xdagger = np.linalg.pinv(Xtilde)
-        self.w = np.dot(Xdagger, y)
+    def learn(self, X, y, l=None):
+        if l is None:
+            Xtilde = [self.transform(x) for x in X]
+            Xdagger = np.linalg.pinv(Xtilde)
+            self.w = np.dot(Xdagger, y)
+        else:
+            for i, x in enumerate(X):
+                yh, Xdagger = self.evaluate(x)
+                self.w += l.learn(Xdagger, y[i], yh)
 
     """
     Evaluate the polynomial approximator
@@ -86,7 +91,8 @@ class GLT:
     @return Predicted value
     """
     def evaluate(self, x):
-        return np.dot(self.w, self.transform(x))
+        Xdagger = self.transform(x)
+        return np.dot(self.w, Xdagger), Xdagger
 
     
 if __name__ == "__main__":

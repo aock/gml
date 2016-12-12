@@ -56,7 +56,6 @@ class Polynomial():
     """
 
     def transform(self, x):
-
         func = [x_dim ** i for x_dim in x for i in range(self.deg + 1) ]
         for x_ in x:
             func.append(np.sin(x_))
@@ -79,7 +78,8 @@ class Polynomial():
     @return Predicted value
     """
     def evaluate(self, x):
-        return np.dot(self.w, self.transform(x))
+        Xdagger = self.transform(x)
+        return np.dot(self.w, Xdagger), Xdagger
 
     
 if __name__ == "__main__":
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     testX = dataX[6000:]
     testY = dataY[6000:]
     # Create hypothesis set
-    h = GLT(10, 4)
+    h = Polynomial(10)
     # Learn on the training data
     h.learn(trainX, trainY)
     # Display the in-sample-error

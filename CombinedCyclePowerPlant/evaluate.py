@@ -1,7 +1,9 @@
 import numpy as np
 import sys
+from ccpp_RLS import RLS
 from ccpp_linear import GLT
 from ccpp_polynomial import Polynomial
+from matplotlib.pyplot import plot as plt
 
 """
 Calcuate the MSE on a given dataset
@@ -13,7 +15,7 @@ Calcuate the MSE on a given dataset
 def calculateError(h, x, y):
     error = 0
     for el in zip(x, y):
-        yh = h.evaluate(el[0])
+        yh, _ = h.evaluate(el[0])
         y = el[1]
         error += (yh - y)**2
     error /= len(x)
@@ -27,6 +29,9 @@ def normalize(x):
     return x
 
 
+def plot(x, y1, y2):
+    plt.plot(x, y2, 'bo', x, y1, 'ro')
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -65,6 +70,16 @@ if __name__ == "__main__":
         h = GLT(i, 4)
         # Learn on the training data
         h.learn(dataXTrain, dataYTrain)
+        # Display the in-sample-error
+        print('In-|Out-Sample-Error:  %d - %f | %f' %
+        (i, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
+    
+    print("--------------------------------")
+    for i in range(18, 22, 1):
+        h = GLT(i, 4)
+        l = RLS(i * 4, 1)
+        # Learn on the training data
+        h.learn(dataXTrain, dataYTrain, l)
         # Display the in-sample-error
         print('In-|Out-Sample-Error:  %d - %f | %f' %
         (i, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
