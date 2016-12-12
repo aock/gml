@@ -118,10 +118,10 @@ if __name__ == "__main__":
     testX = dataX[6000:]
     testY = dataY[6000:]
     # Create hypothesis set
-    h = GLT(100, 4)
+    h = GLT(10, 4)
     # Initialize learning algorithm
-    l = RLS(100 * 4, 1)
+    l = RLS(10 * 4, 1)
     # Learn on the training data
-    h.learn(dataX, dataY, l)
+    h.learn(trainX, trainY, l)
     # Display the in-sample-error
-    print('In-Sample-Error:', calculateError(h, dataX, dataY))
+    print('In-Sample-Error:', calculateError(h, testX, testY))

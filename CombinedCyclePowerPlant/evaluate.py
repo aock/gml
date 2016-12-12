@@ -29,7 +29,7 @@ def normalize(x):
 
 
 def plot(x, y1, y2):
-    plt.plot(x, y2, 'bo', x, y1, 'ro')
+    plt.plot(x, y1, 'bo', x, y2, 'ro')
     plt.show()
 
 
@@ -78,17 +78,15 @@ if __name__ == "__main__":
     h.learn(dataXTrain, dataYTrain)
     # Display the in-sample-error
     print('In-|Out-Sample-Error:  %d - %f | %f' %
-        (i, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
-
+          (20, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
 
 
     print("--------------------------------")
     print("RLS")
-    for i in range(18, 22, 1):
-        h = GLT(i, 4)
-        l = RLS(i * 4, 1)
-        # Learn on the training data
-        h.learn(dataXTrain, dataYTrain, l)
-        # Display the in-sample-error
-        print('In-|Out-Sample-Error:  %d - %f | %f' %
-        (i, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
+    h = GLT(5, 4)
+    l = RLS(5 * 4, 1)
+    # Learn on the training data
+    h.learn(dataXTrain, dataYTrain, l)
+    # Display the in-sample-error
+    print('In-|Out-Sample-Error:  %d - %f | %f' %
+          (5, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
