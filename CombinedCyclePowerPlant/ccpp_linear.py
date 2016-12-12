@@ -11,29 +11,6 @@ Template for the CCPP-Challenge
 import numpy as np
 import matplotlib.pyplot as plt
 
-"""
-Calcuate the MSE on a given dataset
-@param h The hypothesis to evaluate
-@param x The input values of the test data
-@param y The output value of the test data
-@return The mean squared error
-"""
-def calculateError(h, x, y):
-    error = 0
-    for el in zip(x, y):
-        yh = h.evaluate(el[0])
-        y = el[1]
-        error += (yh - y)**2
-    error /= len(x)
-    return error
-
-
-def normalize(x):
-    for i in range(len(x[0])):
-#        x[:,i] -= np.amin(x[:,i])
-        x[:,i] /= np.amax(x[:,i])
-    return x
-
 
 """
 This class contains a linear regressor on a GLT-approximator
@@ -93,14 +70,27 @@ class GLT:
 if __name__ == "__main__":
     # Read data from file
     data = np.genfromtxt("ccpp_first_batch.txt", delimiter=",")
+
+    #np.random.shuffle(data)
+
     # Seperate data in input and output values
     dataX = [el[0:4] for el in data]
     dataY = [el[4] for el in data]
+
     # Normalize input data
     dataX = normalize(np.asarray(dataX))
+
+    saveValues = 5000
+
+    dataXTrain  = dataX[:saveValues]
+    dataYTrain  = dataY[:saveValues]
+    dataXTest   = dataX[saveValues:]
+    dataYTest   = dataY[saveValues:]
+
     # Create hypothesis set
-    h = GLT(100, 4)
-    # Learn on the training data
-    h.learn(dataX, dataY)
-    # Display the in-sample-error
-    print('In-Sample-Error:', calculateError(h, dataX, dataY))
+    for i in range(15, 25, 1):
+        h = GLT(i, 4)
+        # Learn on the training data
+        h.learn(dataXTrain, dataYTrain)
+        # Display the in-sample-error
+        print('In-|Out-Sample-Error:  %d - %f | %f' % (i, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
