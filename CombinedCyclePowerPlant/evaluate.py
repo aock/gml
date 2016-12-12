@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from ccpp_linear import GLT
 from ccpp_polynomial import Polynomial
-
+from matplotlib.pyplot import
 """
 Calcuate the MSE on a given dataset
 @param h The hypothesis to evaluate
@@ -27,6 +27,9 @@ def normalize(x):
     return x
 
 
+def plot(x, y1, y2):
+    plt.plot(x, y2, 'bo', x, y1, 'ro')
+    plt.show()
 
 
 if __name__ == "__main__":
