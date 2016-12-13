@@ -66,7 +66,7 @@ if __name__ == "__main__":
 		# OVERRIDE THEESE ARRAYS FOR OUT-OF-SAMPLE-ERROR
         dataXTest   = dataX[indices_check]
         dataYTest   = dataY[indices_check]
-		if len(sys.argv) > 1:
+	if len(sys.argv) > 1:
 			print("Using " + str(sys.argv[1]) + " as test-data")
 			dataTest = np.genfromtxt(sys.argv[1], delimiter=",")
 			dataXTest = np.array([el[0:4] for el in dataTest])
