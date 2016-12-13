@@ -41,25 +41,10 @@ if __name__ == "__main__":
     glt_eout = []
     glt_ein = []
 
-
-    for times in range(500):
-
+    for times in range(1):
 
         # Read data from file
         data = np.genfromtxt("ccpp_first_batch.txt", delimiter=",")
-
-
-
-        #np.random.shuffle(data)
-        dataX = []
-        dataY = []
-
-        split = 2000
-        random_indices = np.arange(0,7000)
-        np.random.shuffle(random_indices)
-
-        indices_check = list(random_indices[:split])
-        indices_train = list(random_indices[split:])
 
         # Seperate data in input and output values
         dataX = np.array([el[0:4] for el in data])
@@ -68,17 +53,34 @@ if __name__ == "__main__":
         # Normalize input data
         dataX = normalize(np.asarray(dataX))
 
+		# Split data into train and test data
+        split = 2000
+        random_indices = np.arange(0,7000)
+        np.random.shuffle(random_indices)
 
+        indices_check = list(random_indices[:split])
+        indices_train = list(random_indices[split:])
         dataXTrain  = dataX[indices_train]
         dataYTrain  = dataY[indices_train]
+		
+		# OVERRIDE THEESE ARRAYS FOR OUT-OF-SAMPLE-ERROR
         dataXTest   = dataX[indices_check]
         dataYTest   = dataY[indices_check]
+		if len(sys.argv) > 1:
+			print("Using " + str(sys.argv[1]) + " as test-data")
+			dataTest = np.genfromtxt(sys.argv[1], delimiter=",")
+			dataXTest = np.array([el[0:4] for el in dataTest])
+			dataYTest = np.array([el[4] for el in dataTest])
+			dataXTest = normalize(np.asarray(dataXTest))
+		
 
         maxdim = 5
 
         eouts = []
         eins = []
+        print("--------------------------------")
         print("Polynome")
+		
         for i in range(1, maxdim, 1):
             h = Polynomial(i)
             h.learn(dataXTrain, dataYTrain)
@@ -111,15 +113,16 @@ if __name__ == "__main__":
         glt_ein.append(dc(eins))
         glt_eout.append(dc(eouts))
 
-
-    import pickle
-    outfile = sys.argv[1]
-    with open(outfile, 'wb') as f:
-        pickle.dump(pol_eout, f)
-        pickle.dump(pol_ein, f)
-        pickle.dump(glt_eout, f)
-        pickle.dump(glt_ein, f)
-
+	"""
+	if len(sys.argv) > 1:
+		import pickle
+		outfile = sys.argv[1]
+		with open(outfile, 'wb') as f:
+			pickle.dump(pol_eout, f)
+			pickle.dump(pol_ein, f)
+			pickle.dump(glt_eout, f)
+			pickle.dump(glt_ein, f)
+	"""
 
 
     """
