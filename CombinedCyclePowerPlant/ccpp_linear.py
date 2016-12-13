@@ -9,7 +9,7 @@ Template for the CCPP-Challenge
 """
 
 import numpy as np
-
+import collections
 
 """
 Calcuate the MSE on a given dataset
@@ -49,7 +49,7 @@ class GLT:
     """
     def __init__(self, deg, dim):
         self.deg = deg
-        self.w = np.zeros(deg * dim)
+        self.w = np.zeros(deg ** dim)
         self.nodes = [np.linspace(0, 1, deg) for i in range(dim)]
         self.dist = self.nodes[0][1] - self.nodes[0][0]
 
@@ -59,7 +59,23 @@ class GLT:
     @return phi(x)
     """
     def transform(self, x):
-        out = []
+
+        out = 1
+        if not isinstance(x, collections.Iterable):
+            x = np.array([x])
+
+        for i, dim in enumerate(x):
+            phi = np.zeros(self.deg)
+            for j in range(self.deg - 1):
+                if self.nodes[i][j] <= dim and dim <= self.nodes[i][j+1]:
+                    phi[j] = 1 - ((dim - self.nodes[i][j]) / self.dist)
+                    phi[j+1] = 1 - phi[j]
+                    break
+
+            out = np.outer(out, np.array(phi)).flatten()
+
+        return out
+
         for i in range(len(x)):
             phi = np.zeros(self.deg)
             for j in range(self.deg - 1):
@@ -84,6 +100,7 @@ class GLT:
             for i, x in enumerate(X):
                 yh, Xdagger = self.evaluate(x)
                 self.w += l.learn(Xdagger, y[i], yh)
+        return self.w
 
     """
     Evaluate the polynomial approximator
