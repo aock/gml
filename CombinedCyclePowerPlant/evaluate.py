@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-from ccpp_linear import GLT
+from ccpp_glt import GLT
 from ccpp_polynomial import Polynomial
 from matplotlib.pyplot import plot as plt
 from copy import deepcopy as dc
