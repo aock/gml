@@ -1,6 +1,5 @@
 import numpy as np
 import sys
-from ccpp_RLS import RLS
 from ccpp_linear import GLT
 from ccpp_polynomial import Polynomial
 from matplotlib.pyplot import plot as plt
@@ -123,39 +122,3 @@ if __name__ == "__main__":
 			pickle.dump(glt_eout, f)
 			pickle.dump(glt_ein, f)
 	"""
-
-
-    """
-    print("--------------------------------")
-    print("RLS")
-
-
-    for i in range(2,maxdim,1):
-        pocket = None
-        error = np.inf
-        h = GLT(i, 4)
-        l = RLS(i ** 4, 1)
-        _i = 0
-        # Learn on the training data
-        #for _i in range(100):
-        while True and _i < 1000:
-            h.learn(dataXTrain, dataYTrain, l)
-            err = calculateError(h, dataXTest, dataYTest)
-            if error > err and abs(error - err) > 0.01:
-                error = err
-                pocket = dc(h.w)
-            else:
-                print("Fehler: ", err)
-                break
-            print("%d - Best: %f | Current: %f" % (_i, error, err))
-            _i += 1
-
-        if pocket is not None:
-            h.w = pocket
-
-            # Display the in-sample-error
-            print('In-|Out-Sample-Error:  %d - %f | %f' %
-            (i, calculateError(h, dataXTrain, dataYTrain), calculateError(h, dataXTest, dataYTest)))
-        else:
-            print('In-|Out-Sample-Error:  %d - keine Approximation gefunden' % i)
-    """
