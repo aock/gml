@@ -1,6 +1,7 @@
 import numpy as np
 import sys
-from ccpp_glt import GLT
+from ccpp_glt_linear import GLTlinear
+from ccpp_glt_gaussian import GLTgauss
 from ccpp_polynomial import Polynomial
 from matplotlib.pyplot import plot as plt
 from copy import deepcopy as dc
@@ -99,7 +100,7 @@ if __name__ == "__main__":
         print("GLT")
         # Create hypothesis set
         for i in range(2, maxdim, 1):
-            h = GLT(i, 4)
+            h = GLTgauss(i, 4)
             # Learn on the training data
             h.learn(dataXTrain, dataYTrain)
             # Display the in-sample-error
