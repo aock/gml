@@ -6,6 +6,7 @@ from ccpp_polynomial import Polynomial
 from matplotlib.pyplot import plot as plt
 from copy import deepcopy as dc
 import pickle
+import time
 """
 Calcuate the MSE on a given dataset
 @param h The hypothesis to evaluate
@@ -46,6 +47,7 @@ if __name__ == "__main__":
         glt_lin_pocket = pickle.load(f)
         glt_gauss_pocket = pickle.load(f)
         f.close()
+
         data = np.genfromtxt(testdata, delimiter=",")
 
         # Seperate data in input and output values
@@ -110,19 +112,24 @@ if __name__ == "__main__":
     pol_eout = []
     pol_ein = []
 
-
-    times = 10
+    printed = False
+    times = 3
     for times in range(times):
+        start = time.clock()
         print(times)
         # Read data from file
         data = np.genfromtxt("ccpp_first_batch.txt", delimiter=",")
         data2 = np.genfromtxt("ccpp_first_test.txt", delimiter=",")
 
         data = np.concatenate((data,data2))
-        print("Number Trainingsets: " + str(len(data)))
 
         ratio = 1./5.
-
+        if not printed:
+            num = len(data)
+            print("Total Number: " + str(num))
+            print("Train Number: " + str(num - int(num*ratio)))
+            print("Test Number:  " + str(int(num*ratio)))
+            printed = True
 
         # Seperate data in input and output values
         dataX = np.array([el[0:4] for el in data])
@@ -130,8 +137,8 @@ if __name__ == "__main__":
 
         # Normalize input data
         dataX = normalize(np.asarray(dataX))
-        for i,_ in enumerate(dataX):
-            dataX[i][3] /= 10
+        #for i,_ in enumerate(dataX):
+        #   dataX[i][3] /= 10
 
         # Split data into train and test data
         split = int(len(data)*ratio)
@@ -218,6 +225,9 @@ if __name__ == "__main__":
             eins.append(ein)
         glt_gauss_ein.append(dc(eins))
         glt_gauss_eout.append(dc(eouts))
+
+        current = time.clock()
+        print("Time wasted: " + str(current - start) + "s")
 
     print("Finished calcs")
 
