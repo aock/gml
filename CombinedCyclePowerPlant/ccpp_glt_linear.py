@@ -60,6 +60,7 @@ class GLT:
     """
     def transform(self, x):
 
+
         out = 1
         if not isinstance(x, collections.Iterable):
             x = np.array([x])
@@ -75,7 +76,8 @@ class GLT:
             out = np.outer(out, np.array(phi)).flatten()
 
         return out
-
+        """
+        out = []
         for i in range(len(x)):
             phi = np.zeros(self.deg)
             for j in range(self.deg - 1):
@@ -85,6 +87,7 @@ class GLT:
                     break
             out.append(phi)
         return np.hstack(out)
+        """
 
     """
     Performs the learning of the approximator
