@@ -1,11 +1,10 @@
 import numpy as np
 import sys
-from ccpp_glt_linear import GLT
+from ccpp_glt_linear import GLTlinear
+from ccpp_glt_gaussian import GLTgauss
 from ccpp_polynomial import Polynomial
 from matplotlib.pyplot import plot as plt
 from copy import deepcopy as dc
-import pickle
-
 """
 Calcuate the MSE on a given dataset
 @param h The hypothesis to evaluate
@@ -13,8 +12,6 @@ Calcuate the MSE on a given dataset
 @param y The output value of the test data
 @return The mean squared error
 """
-
-
 def calculateError(h, x, y):
     error = 0
     for el in zip(x, y):

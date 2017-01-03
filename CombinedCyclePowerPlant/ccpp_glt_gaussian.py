@@ -7,7 +7,7 @@ Created on Wed Dec  7 16:25:24 2016
 Template for the CCPP-Challenge
 
 """
-
+from __future__ import division
 import numpy as np
 import collections
 
@@ -39,7 +39,7 @@ def normalize(x):
 This class contains a linear regressor on a GLT-approximator
 for 1D problems
 """
-class GLTlinear:
+class GLTgauss:
     """
     Constructor
     The nodes are implicity placed equidistantly on [-1;1]
@@ -52,6 +52,11 @@ class GLTlinear:
         self.w = np.zeros(deg ** dim)
         self.nodes = [np.linspace(0, 1, deg) for i in range(dim)]
         self.dist = self.nodes[0][1] - self.nodes[0][0]
+        self.scale = 1 / (2*np.sqrt(-np.log(1/2)))
+
+
+    def gauss(self, x, u, sigma):
+        return np.exp(-(x-u)**2 / (2*sigma**2))
 
     """
     Tansformation function (phi)
@@ -66,12 +71,9 @@ class GLTlinear:
 
         for i, dim in enumerate(x):
             phi = np.zeros(self.deg)
-            for j in range(self.deg - 1):
-                if self.nodes[i][j] <= dim and dim <= self.nodes[i][j+1]:
-                    phi[j] = 1 - ((dim - self.nodes[i][j]) / self.dist)
-                    phi[j+1] = 1 - phi[j]
-                    break
-
+            for j in range(self.deg):
+                 phi[j] = self.gauss(dim, self.nodes[i][j], self.dist * self.scale)
+            phi = phi / np.sum(phi)
             out = np.outer(out, np.array(phi)).flatten()
 
         return out
