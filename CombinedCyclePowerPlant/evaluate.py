@@ -5,6 +5,7 @@ from ccpp_glt_gaussian import GLTgauss
 from ccpp_polynomial import Polynomial
 from matplotlib.pyplot import plot as plt
 from copy import deepcopy as dc
+import pickle
 """
 Calcuate the MSE on a given dataset
 @param h The hypothesis to evaluate
@@ -42,7 +43,8 @@ if __name__ == "__main__":
         testdata = sys.argv[2]
         f = open(pocketfile, 'rb')
         pol_pocket = pickle.load(f)
-        glt_pocket = pickle.load(f)
+        glt_lin_pocket = pickle.load(f)
+        glt_gauss_pocket = pickle.load(f)
         f.close()
         data = np.genfromtxt(testdata, delimiter=",")
 
@@ -66,12 +68,24 @@ if __name__ == "__main__":
                   (i, eout))
 
         print("--------------------------------")
-        print("GLT")
+        print("GLTLinear")
         # Create hypothesis set
         for i in range(2, maxdim, 1):
-            h = GLT(i, 4)
+            h = GLTlinear(i, 4)
             # Learn on the training data
-            h.w = glt_pocket[i-2]
+            h.w = glt_lin_pocket[i-2]
+            # Display the in-sample-error
+            eout = calculateError(h, dataX, dataY)
+            print('Out-Sample-Error:  %d - %f' %
+                  (i, eout))
+
+        print("--------------------------------")
+        print("GLTGauss")
+        # Create hypothesis set
+        for i in range(2, maxdim, 1):
+            h = GLTgauss(i, 4)
+            # Learn on the training data
+            h.w = glt_gauss_pocket[i-2]
             # Display the in-sample-error
             eout = calculateError(h, dataX, dataY)
             print('Out-Sample-Error:  %d - %f' %
@@ -82,12 +96,17 @@ if __name__ == "__main__":
 
     else:
         pol_pocket = [None, None, None, None]
-        glt_pocket = [None, None, None]
+        glt_lin_pocket = [None, None, None]
+        glt_gauss_pocket = [None, None, None]
 
     pol_err = [np.inf, np.inf, np.inf, np.inf]
-    glt_err = [np.inf, np.inf, np.inf]
-    glt_eout = []
-    glt_ein = []
+    glt_lin_err = [np.inf, np.inf, np.inf]
+    glt_gauss_err = [np.inf, np.inf, np.inf]
+
+    glt_lin_eout = []
+    glt_lin_ein = []
+    glt_gauss_eout = []
+    glt_gauss_ein = []
     pol_eout = []
     pol_ein = []
 
@@ -162,31 +181,53 @@ if __name__ == "__main__":
         print("GLT")
         # Create hypothesis set
         for i in range(2, maxdim, 1):
-            h = GLT(i, 4)
+            h = GLTlinear(i, 4)
             # Learn on the training data
             h.learn(dataXTrain, dataYTrain)
             # Display the in-sample-error
             ein = calculateError(h, dataXTrain, dataYTrain)
             eout = calculateError(h, dataXTest, dataYTest)
-            if glt_err[i-2] > eout:
-                glt_err[i-2] = eout
-                glt_pocket[i-2] = dc(h.w)
+            if glt_lin_err[i-2] > eout:
+                glt_lin_err[i-2] = eout
+                glt_lin_pocket[i-2] = dc(h.w)
             print('In-|Out-Sample-Error:  %d - %f | %f' %
                   (i, ein, eout))
             eouts.append(eout)
             eins.append(ein)
-        glt_ein.append(dc(eins))
-        glt_eout.append(dc(eouts))
+        glt_lin_ein.append(dc(eins))
+        glt_lin_eout.append(dc(eouts))
 
+        eouts = []
+        eins = []
+        print("--------------------------------")
+        print("GLTGauss")
+        # Create hypothesis set
+        for i in range(2, maxdim, 1):
+            h = GLTgauss(i, 4)
+            # Learn on the training data
+            h.learn(dataXTrain, dataYTrain)
+            # Display the in-sample-error
+            ein = calculateError(h, dataXTrain, dataYTrain)
+            eout = calculateError(h, dataXTest, dataYTest)
+            if glt_gauss_err[i-2] > eout:
+                glt_gauss_err[i-2] = eout
+                glt_gauss_pocket[i-2] = dc(h.w)
+            print('In-|Out-Sample-Error:  %d - %f | %f' %
+                  (i, ein, eout))
+            eouts.append(eout)
+            eins.append(ein)
+        glt_gauss_ein.append(dc(eins))
+        glt_gauss_eout.append(dc(eouts))
 
-    import pickle
+    print("Finished calcs")
+
     outfile = "weights"
     with open(outfile, 'wb') as f:
         #print(pol_pocket)
-        #print(glt_pocket)
+        #print(glt_lin_pocket)
         pickle.dump(pol_pocket, f)
-        pickle.dump(glt_pocket, f)
-
+        pickle.dump(glt_lin_pocket, f)
+        pickle.dump(glt_gauss_pocket, f)
 
     if len(sys.argv) == 2:
         outfile = "data/data" + sys.argv[1]
@@ -194,5 +235,7 @@ if __name__ == "__main__":
         with open(outfile, 'wb') as f:
             pickle.dump(pol_eout, f)
             pickle.dump(pol_ein, f)
-            pickle.dump(glt_eout, f)
-            pickle.dump(glt_ein, f)
+            pickle.dump(glt_lin_eout, f)
+            pickle.dump(glt_lin_ein, f)
+            pickle.dump(glt_gauss_eout, f)
+            pickle.dump(glt_gauss_ein, f)
