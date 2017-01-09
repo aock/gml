@@ -32,6 +32,7 @@ class Polynomial():
 
     def transform(self, x):
 
+
         out = 1
         if not isinstance(x, collections.Iterable):
             x = np.array([x])
@@ -45,9 +46,7 @@ class Polynomial():
 
         return out
 
-
-
-
+        """
         global flag
         func = [1]
         gen = [x_dim ** i for x_dim in x for i in range(1, self.deg + 1)]
@@ -59,7 +58,7 @@ class Polynomial():
             print(func)
             flag = False
         return func
-
+        """
         #return [x_dim ** i for x_dim in x for i in range(1, self.deg + 1)]
 
     """
