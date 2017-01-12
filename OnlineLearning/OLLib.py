@@ -23,7 +23,7 @@ class GLT:
         """
         self.deg = deg
         self.w = np.zeros(deg)
-        self.nodes = np.linspace(xmin, xmax, deg)
+        self.nodes = pos if pos is not None else np.linspace(xmin, xmax, deg)
         self.dist = np.diff(self.nodes)
 
     def transform(self, x):
