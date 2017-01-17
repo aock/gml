@@ -170,7 +170,7 @@ if __name__ == "__main__":
     # Uncomment one of the following lines to test your OLLib implementation
 #    learnAndPlot(generateComplex, numData, Chebyshev, 10, PALearner, funcParam, noise=0.05, sort=False, learnParam=learnParam)
 #    learnAndPlot(generateSine, numData, Polynomial, 20, PALearner, funcParam, noise=0, sort=False, learnParam=learnParam)
-    learnAndPlot(generateSine, numData, TSS, 20, PALearner, funcParam, noise=0, sort=False, learnParam=learnParam)
+    learnAndPlot(generateSine, numData, TSS, 20, RLSLearner, funcParam, noise=0, sort=False, learnParam=learnParam)
 #    learnAndPlot(generateSine, numData, GLT, 3, RLSLearner, funcParam, noise=0.1, sort=False, learnParam=learnParam)
     #learnAndPlot(generateSine, numData, Polynomial, 7, RLSLearner, funcParam, noise=0, sort=False, learnParam=learnParam)
     """

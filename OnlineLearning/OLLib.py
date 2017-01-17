@@ -196,7 +196,7 @@ class TSS:
         @param x Coordinate where the approximator shall be evaluated
         @return Evaluation of the approximator phi(x) * w
         """
-        return np.sum([x**i * np.dot(self.w.T, self.transform(x)) for i in range(self.ord + 1)])
+        return np.sum([x**i * np.dot(self.w[i,:], self.transform(x)[i,:]) for i in range(self.ord + 1)])
 
 
 class PALearner:
@@ -224,14 +224,15 @@ class PALearner:
             yp = np.dot(self.approx.w, phiX)
         else:
             yp = self.approx.evaluate(x)
-        self.approx.w += phiX * (y - yp) / (1 + np.inner(phiX, phiX))
+        self.approx.w += phiX * (y - yp) / np.sum(phiX**2)
+#        self.approx.w += phiX * (y - yp) / (1 + np.inner(phiX, phiX))
 
 
 class RLSLearner:
     """
     This class implements the Recursive Least Squares learning algorithm
     """
-    def __init__(self, approximator, param={"pInit":100000, "l":1.0}):
+    def __init__(self, approximator, param={"pInit":100000, "l":1.0, "cheb":False}):
         """
         Constructor
         @param approximator The approximator the learning algorithm performs on (e.g. instance of GLT/Polynomial)
@@ -240,7 +241,7 @@ class RLSLearner:
                         l Forgetting factor lambda
         """
         self.approx = approximator
-        self.P = np.identity(len(approximator.w)) * param["pInit"]
+        self.P = np.identity(np.size(approximator.w)) * param["pInit"]
         self.l = param["l"]
         self.param = param
 
