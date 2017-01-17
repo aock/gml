@@ -133,9 +133,9 @@ class Chebyshev:
         phi = np.zeros(self.deg + 1)
         i = np.argmin(np.absolute(x - self.nodes))
         if (self.nodes[i+1] - x) / (x - self.nodes[i-1]) > 1:
-            phi[i] = 1 - 2 * np.absolute(x, self.nodes[i]) / self.dist[i-1]
+            phi[i] = 1 - 2 * np.absolute(x - self.nodes[i]) / self.dist[i-1]
         else:
-            phi[i] = 1 - 2 * np.absolute(x, self.nodes[i]) / self.dist[i]
+            phi[i] = 1 - 2 * np.absolute(x - self.nodes[i]) / self.dist[i]
 
     def evaluate(self, x):
         """
@@ -143,7 +143,7 @@ class Chebyshev:
         @param x Coordinate where the approximator shall be evaluated
         @return Evaluation of the approximator phi(x) * w
         """
-        return np.dot(self.w, self.transform(x))
+        return np.dot(self.w, self.transform(x)) 
 
 
 class TSS:
@@ -161,8 +161,9 @@ class TSS:
         """
         self.deg = deg
         self.ord = ord
-        self.w = np.zeros(deg)
-        self.nodes = pos if pos is not None else np.linspace(xmin, xmax, deg)
+        self.w = np.zeros((ord + 1, deg))
+        x = pos if pos is not None else np.linspace(xmin, xmax, deg)
+        self.nodes, _ = np.meshgrid(x, np.arange(ord + 1))
         self.dist = np.diff(self.nodes)
 
     def transform(self, x):
@@ -171,12 +172,14 @@ class TSS:
         @param x Input coordinate to transform
         @return The transformed vector phi(x)
         """
-        phi = np.zeros(self.deg)
+        phi = np.zeros((self.ord + 1, self.deg))
         for i, n in enumerate(self.nodes):
-            if self.nodes[i] <= x <= self.nodes[i+1]:
-                phi[i] = 1 - ((x - self.nodes[i]) / self.dist[i])
-                phi[i+1] = 1 - phi[i]
-                return phi
+            for j, n in enumerate(self.nodes[i]):
+                if self.nodes[i][j] <= x <= self.nodes[i][j+1]:
+                    phi[i][j] = 1 - ((x - self.nodes[i][j]) / self.dist[i][j])
+                    phi[i][j+1] = 1 - phi[i][j]
+                    break
+        return phi
 
     def evaluate(self, x):
         """
@@ -184,7 +187,7 @@ class TSS:
         @param x Coordinate where the approximator shall be evaluated
         @return Evaluation of the approximator phi(x) * w
         """
-        return np.sum([x**i * np.dot(self.w, self.transform(x)) for i in range(self.ord + 1)])
+        return np.sum([x**i * np.dot(self.w.T, self.transform(x)) for i in range(self.ord + 1)])
 
 
 class PALearner:

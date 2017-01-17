@@ -12,6 +12,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from OLLib import GLT
 from OLLib import Polynomial
+from OLLib import Legendre
+from OLLib import Chebyshev
+from OLLib import TSS
 from OLLib import PALearner
 from OLLib import RLSLearner
 
@@ -99,7 +102,7 @@ def calculateGTloss(targetFunc, approximator, funcParam=None, numPoints=1000):
     return 1 / numPoints * np.sum(np.power(np.subtract(gtY, evalY), 2))
 
 
-def learnAndPlot(targetFunc, numPoints, approximator, degree, learner, funcParam=None, noise=0, sort=False, resolution=1000, learnParam=None, plot=False, gTLoss=False):
+def learnAndPlot(targetFunc, numPoints, approximator, degree, learner, funcParam=None, noise=0, sort=False, resolution=1000, learnParam=None, plot=True, gTLoss=True):
     # Create data set to learn from
     gtX = np.linspace(-1, 1, resolution)
     gtY = targetFunc(gtX, noise=0, param=funcParam)
@@ -185,9 +188,10 @@ if __name__ == "__main__":
     # Uncomment one of the following lines to test your OLLib implementation
 #    learnAndPlot(generateSine, numData, GLT, 20, PALearner, funcParam, noise=0, sort=False, learnParam=learnParam)
 #    learnAndPlot(generateSine, numData, Polynomial, 20, PALearner, funcParam, noise=0, sort=False, learnParam=learnParam)
+    learnAndPlot(generateSine, numData, TSS, 20, RLSLearner, funcParam, noise=0, sort=False, learnParam=learnParam)
 #    learnAndPlot(generateSine, numData, GLT, 3, RLSLearner, funcParam, noise=0.1, sort=False, learnParam=learnParam)
     #learnAndPlot(generateSine, numData, Polynomial, 7, RLSLearner, funcParam, noise=0, sort=False, learnParam=learnParam)
-
+"""
     constGLT = []
     constPOLY = []
     linGLT = []
@@ -223,3 +227,4 @@ if __name__ == "__main__":
 
     print(np.mean(stepGLT), stepGLT)
     print(np.mean(stepPOLY), stepPOLY)
+"""
