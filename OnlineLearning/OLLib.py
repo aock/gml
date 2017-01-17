@@ -7,6 +7,7 @@ Created on Wed Jan  4 10:38:37 2017
 """
 from __future__ import division
 import numpy as np
+from scipy.interpolate import lagrange
 
 
 class GLT:
@@ -132,10 +133,16 @@ class Chebyshev:
         """
         phi = np.zeros(self.deg + 1)
         i = np.argmin(np.absolute(x - self.nodes))
-        if (self.nodes[i+1] - x) / (x - self.nodes[i-1]) > 1:
-            phi[i] = 1 - 2 * np.absolute(x - self.nodes[i]) / self.dist[i-1]
+
+        if i == 0:
+            phi[i] = 0
+        elif i == len(phi) - 1:
+            phi[i] = 0
+        elif (self.nodes[i+1] - x) / (x - self.nodes[i-1]) > 1:
+            phi[i] = 1 - 2 * abs(x - self.nodes[i]) / self.dist[i-1]
         else:
-            phi[i] = 1 - 2 * np.absolute(x - self.nodes[i]) / self.dist[i]
+            phi[i] = 1 - 2 * abs(x - self.nodes[i]) / self.dist[i]
+        return phi
 
     def evaluate(self, x):
         """
@@ -143,7 +150,9 @@ class Chebyshev:
         @param x Coordinate where the approximator shall be evaluated
         @return Evaluation of the approximator phi(x) * w
         """
-        return np.dot(self.w, self.transform(x)) 
+        x = lagrange(self.nodes, self.w)(x)
+        #print("Lagrange: ", time.time() - s_t)
+        return x
 
 
 class TSS:
@@ -201,6 +210,7 @@ class PALearner:
         @param param Empty
         """
         self.approx = approximator
+        self.param = param
 
     def learn(self, x, y):
         """
@@ -210,7 +220,10 @@ class PALearner:
         @param y The value to learn
         """
         phiX = self.approx.transform(x)
-        yp = self.approx.evaluate(x)
+        if self.param["cheb"]:
+            yp = np.dot(self.approx.w, phiX)
+        else:
+            yp = self.approx.evaluate(x)
         self.approx.w += phiX * (y - yp) / (1 + np.inner(phiX, phiX))
 
 
@@ -229,6 +242,7 @@ class RLSLearner:
         self.approx = approximator
         self.P = np.identity(len(approximator.w)) * param["pInit"]
         self.l = param["l"]
+        self.param = param
 
     def learn(self, x, y):
         """
@@ -238,7 +252,10 @@ class RLSLearner:
         @param y The value to learn
         """
         phiX = self.approx.transform(x)
-        yp = self.approx.evaluate(x)
+        if self.param["cheb"]:
+            yp = np.dot(self.approx.w, phiX)
+        else:
+            yp = self.approx.evaluate(x)
         self.approx.w += np.dot(self.P, phiX) * (y - yp) / (self.l + np.inner(phiX, np.dot(self.P, phiX)))
         self.P = self.P / self.l - np.outer(np.dot(self.P, phiX), np.dot(phiX, self.P)) \
                                    / (self.l * (self.l + np.inner(np.dot(phiX, self.P), phiX)))
