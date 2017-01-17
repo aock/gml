@@ -45,7 +45,7 @@ if __name__ == "__main__":
         f = open(pocketfile, 'rb')
         pol_pocket = pickle.load(f)
         glt_lin_pocket = pickle.load(f)
-        glt_gauss_pocket = pickle.load(f)
+        #glt_gauss_pocket = pickle.load(f)
         f.close()
 
         data = np.genfromtxt(testdata, delimiter=",")
@@ -81,6 +81,7 @@ if __name__ == "__main__":
             print('Out-Sample-Error:  %d - %f' %
                   (i, eout))
 
+        """
         print("--------------------------------")
         print("GLTGauss")
         # Create hypothesis set
@@ -92,7 +93,7 @@ if __name__ == "__main__":
             eout = calculateError(h, dataX, dataY)
             print('Out-Sample-Error:  %d - %f' %
                   (i, eout))
-
+        """
         sys.exit()
 
 
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     pol_ein = []
 
     printed = False
-    times = 3
+    times = 500
     for times in range(times):
         start = time.clock()
         print(times)
