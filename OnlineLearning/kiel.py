@@ -2,6 +2,7 @@ from __future__ import division
 import os, sys, numpy as np
 import matplotlib.pyplot as plt
 from OLLib import *
+import collections
 
 # 2008
 dio8 = np.array([[i*7, 1+i*7, 2+i*7] for i in range(53)]).flatten()
@@ -50,6 +51,86 @@ fr9 = fr9[np.where(fr9 < 365)]
 sa9 = sa9[np.where(sa9 < 365)]
 sof9 = sof9[np.where(sof9 < 365)]
 
+
+"""
+This class contains a linear regressor on a GLT-approximator
+for 1D problems
+"""
+class GLTgauss:
+    """
+    Constructor
+    The nodes are implicity placed equidistantly on [-1;1]
+    For a general solution neither the input interval of [-1;1] nor the
+    equidistant positioning should be assumed
+    @param deg Number of nodes
+    """
+    def __init__(self, deg, xmin=0, xmax=1, dim=1, pos=None):
+        self.deg = deg
+        self.w = np.zeros(deg ** dim)
+        self.nodes = [pos if pos is not None else np.linspace(xmin, xmax, deg)]
+        self.dist = self.nodes[0][1] - self.nodes[0][0]
+        self.scale = 1 / (2*np.sqrt(-np.log(1/2)))
+
+
+    def gauss(self, x, u, sigma):
+        return np.exp(-(x-u)**2 / (2*sigma**2))
+
+    """
+    Tansformation function (phi)
+    @param x 1D-input value to transform
+    @return phi(x)
+    """
+    def transform(self, x):
+
+        out = 1
+        if not isinstance(x, collections.Iterable):
+            x = np.array([x])
+
+        for i, dim in enumerate(x):
+            phi = np.zeros(self.deg)
+            for j in range(self.deg):
+                 phi[j] = self.gauss(dim, self.nodes[i][j], self.dist * self.scale)
+            phi = phi / np.sum(phi)
+            out = np.outer(out, np.array(phi)).flatten()
+
+        return out
+
+#        for i in range(len(x)):
+#            phi = np.zeros(self.deg)
+#            for j in range(self.deg - 1):
+#                if self.nodes[i][j] <= x[i] and x[i] <= self.nodes[i][j+1]:
+#                    phi[j] = 1 - ((x[i] - self.nodes[i][j]) / self.dist)
+#                    phi[j+1] = 1 - phi[j]
+#                    break
+#            out.append(phi)
+#        return np.hstack(out)
+
+    """
+    Performs the learning of the approximator
+    @param X Matrix (Vector for 1D) containing all x-input values
+    @param y Vector of corresponding output values
+    """
+    def learn(self, X, y, l=None):
+        if l is None:
+            Xtilde = [self.transform(x) for x in X]
+            Xdagger = np.linalg.pinv(Xtilde)
+            self.w = np.dot(Xdagger, y)
+        else:
+            for i, x in enumerate(X):
+                yh, Xdagger = self.evaluate(x)
+                self.w += l.learn(Xdagger, y[i], yh)
+        return self.w
+
+    """
+    Evaluate the polynomial approximator
+    @param x Point to evaluate
+    @return Predicted value
+    """
+    def evaluate(self, x):
+        Xdagger = self.transform(x)
+        return np.dot(self.w, Xdagger)#, Xdagger
+
+
 def batch(data, approx):
     Xtilde = [approx.transform(x) for x in data[:,1]]
     Xdagger = np.linalg.pinv(Xtilde)
@@ -72,22 +153,23 @@ def jorotheEval(first, second):
     #approx = GLT(97, 0, 1)
     #batch(first, approx)
 
-    """
-    for d in range(50):
-        plt.plot(range(96), first[d*96:(d+1)*96,2])
-        plt.plot(range(96), second[(d+2)*96:(d+3)*96,2])
-        plt.ylim([0,50])
-        plt.show()
-    """
+
+    #for d in range(50):
+    #    plt.plot(range(96), first[7*d*96:7*d*96+96,2])
+        #plt.plot(range(96), second[(d+2)*96:(d+3)*96,2])
+    #    plt.ylim([-1,1])
+    #    plt.show()
+
 
     firstSetSize= 7 # First 2 Months for Init
-    dim = 4
-    aprox = Polynomial
+    dim = 99
+    aprox = GLTgauss
     learner = PALearner
     # GLT Optimum: GLT(99) 6706
-    # Pol Optimum: Pol(4) 5766          Pol(1) -> 6090
+    # Pol Optimum: Pol(20 5746         Pol(1) -> 6090
     # Leg Optimum: Leg(3) 6329
     # Che Optimum: Che(3)
+    # GGT Optimum: GGT(99) 5552
 
     a_mo  = aprox(dim)
     a_dio = aprox(dim)
@@ -143,12 +225,13 @@ def jorotheEval(first, second):
         for m in range(96):
             p.append(aprox.evaluate(m/96))
         p = np.array(p)
+        #print(p)
         #p += last - p[0]
         last = p[-1]
         for m in range(96):
             datum = data[d*96 + m]
             t.append(datum[2])
-            #datum[2] -= data[d*96, 2] - p[0]
+            #datum[2] += -data[d*96, 2] + p[0]
             learner.learn(datum[1], datum[2])
         t = np.array(t)
         if plot:
@@ -162,6 +245,7 @@ def jorotheEval(first, second):
     #plt.ion()
     last = 0
     cumLoss = 0
+    cL = []
     for d in range(365):
         print("Day: ", d)
         if d in mo9:
@@ -179,6 +263,10 @@ def jorotheEval(first, second):
         else:
             _, _, last, loss = predictLearn(a_sof, learner_sof, second, last)
             cumLoss += loss
+        cL.append(cumLoss)
+
+    plt.plot(range(365), cL)
+    plt.show()
 
     print("Fehler: ", cumLoss)
 
