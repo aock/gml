@@ -19,10 +19,12 @@ dio8 = np.array([x for x in dio8 if x not in ff8])
 fr8 = np.array([x for x in fr8 if x not in ff8])
 sa8 = np.array([x for x in sa8 if x not in ff8])
 
+"""
 for arr in [mo8, dio8, fr8, sa8, sof8]:
     for i,e in enumerate(arr):
         if e > 59:
             arr[i] -= 1
+"""
 
 mo8 = mo8[np.where(mo8 < 365)]
 dio8 = dio8[np.where(dio8 < 365)]
