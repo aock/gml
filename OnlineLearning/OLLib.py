@@ -14,7 +14,7 @@ class GLT:
     """
     This class implements a grid-based lookup table approximator for 1D-Regression
     """
-    def __init__(self, deg, xmin=-1, xmax=1, pos=None):
+    def __init__(self, deg, xmin=0, xmax=1, pos=None):
         """
         Constructor
         @param deg Number of nodes
@@ -203,7 +203,7 @@ class PALearner:
     """
     This class implements the Passive-Aggressive learning algorithm
     """
-    def __init__(self, approximator, param=None):
+    def __init__(self, approximator, param={"cheb":False}):
         """
         Constructor
         @param approximator The approximator the learning algorithm performs on (e.g. instance of GLT/Polynomial)
@@ -224,8 +224,8 @@ class PALearner:
             yp = np.dot(self.approx.w, phiX)
         else:
             yp = self.approx.evaluate(x)
-        self.approx.w += phiX * (y - yp) / np.sum(phiX**2)
-#        self.approx.w += phiX * (y - yp) / (1 + np.inner(phiX, phiX))
+#        self.approx.w += phiX * (y - yp) / np.sum(phiX**2)
+        self.approx.w += phiX * (y - yp) / (1 + np.inner(phiX, phiX))
 
 
 class RLSLearner:
