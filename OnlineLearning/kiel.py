@@ -162,8 +162,8 @@ def jorotheEval(first, second):
 
 
     firstSetSize= 7 # First 2 Months for Init
-    dim = 99
-    aprox = GLTgauss
+    dim = 3
+    aprox = Polynomial
     learner = PALearner
     # GLT Optimum: GLT(99) 6706
     # Pol Optimum: Pol(20 5746         Pol(1) -> 6090
@@ -219,18 +219,24 @@ def jorotheEval(first, second):
 
     print("Learned, start predicting")
 
-    def predictLearn(aprox, learner, data, last, plot=False):
+    def predictLearn(aprox, learner, data, d, last, plot=False):
         p = []
-        t = []
+        t = np.zeros(96)
         for m in range(96):
             p.append(aprox.evaluate(m/96))
         p = np.array(p)
         #print(p)
         #p += last - p[0]
         last = p[-1]
-        for m in range(96):
-            datum = data[d*96 + m]
-            t.append(datum[2])
+        #print(d)
+        data2 = data[d*96:(d+1)*96]
+        #np.random.shuffle(data)
+        ran = np.linspace(0,95,96)
+        #np.random.shuffle(ran)
+        for m in ran:
+            m = int(m)
+            datum = data2[m]
+            t[m] = (datum[2])
             #datum[2] += -data[d*96, 2] + p[0]
             learner.learn(datum[1], datum[2])
         t = np.array(t)
@@ -249,19 +255,19 @@ def jorotheEval(first, second):
     for d in range(365):
         print("Day: ", d)
         if d in mo9:
-            _, _, last, loss = predictLearn(a_mo, learner_mo, second, last)
+            _, _, last, loss = predictLearn(a_mo, learner_mo, second, d, last)
             cumLoss += loss
         elif d in dio9:
-            _, _, last, loss = predictLearn(a_dio, learner_dio, second, last)
+            _, _, last, loss = predictLearn(a_dio, learner_dio, second, d, last)
             cumLoss += loss
         elif d in fr9:
-            _, _, last, loss = predictLearn(a_fr, learner_fr, second, last)
+            _, _, last, loss = predictLearn(a_fr, learner_fr, second, d, last)
             cumLoss += loss
         elif d in sa9:
-            _, _, last, loss = predictLearn(a_sa, learner_sa, second, last)
+            _, _, last, loss = predictLearn(a_sa, learner_sa, second, d, last)
             cumLoss += loss
         else:
-            _, _, last, loss = predictLearn(a_sof, learner_sof, second, last)
+            _, _, last, loss = predictLearn(a_sof, learner_sof, second, d, last)
             cumLoss += loss
         cL.append(cumLoss)
 
