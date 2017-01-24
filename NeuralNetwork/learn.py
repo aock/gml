@@ -2,9 +2,11 @@ from __future__ import division
 import numpy as np
 
 from sklearn.neural_network import MLPRegressor
-from OnlineLearning import generateConstant
+from OnlineLearning import generateConstant, generateComplex, generateSine, generateLinear, generateStep
 
 import time
+import pickle
+import sys
 
 
 def frange(min, max, step):
@@ -23,18 +25,18 @@ def calculategtLoss(targetFunc, approximator, funcParam=None, numPoints=1000):
 
 if __name__ == "__main__":
 
-    print("Generating Regressors")
-
-    clf_5 =   MLPRegressor(solver='sgd', activation ='tanh',
-                           hidden_layer_sizes=[5], max_iter=int(1e6), tol=1e-8)
-    clf_55 =  MLPRegressor(solver='sgd', activation ='tanh',
-                           hidden_layer_sizes=[5,5], max_iter=int(1e6), tol=1e-8)
-    clf_555 = MLPRegressor(solver='sgd', activation ='tanh',
-                           hidden_layer_sizes=[5,5,5], max_iter=int(1e6), tol=1e-8)
+    if sys.argv[1] == "load":
+        with open(sys.argv[2], "rb") as f:
+            e = pickle.load(f)
+        print(e)
 
 
-    targetFunction = generateConstant
-    error = np.zeros([3, 200, 200])
+    k = eval(sys.argv[1])
+    targetFunction = eval(sys.argv[2])
+    saveName = "save_" + sys.argv[1] + "_" + sys.argv[2]
+
+    print k, targetFunction, saveName
+    error = np.zeros([200, 200])
 
     print("Starting")
     for i in range(1,201):
@@ -45,13 +47,13 @@ if __name__ == "__main__":
                 X = X.reshape(1, -1)
             else:
                 X = X.reshape(-1, 1)
-            for k in range(1,4):#, clf_55, clf_555]):
-                a = MLPRegressor(solver='sgd', activation ='tanh',
-                           hidden_layer_sizes=[5]*k, max_iter=int(1e6), tol=1e-8)
-                m = a.fit(X, Y)
-                error[k-1, i-1, j] = calculategtLoss(targetFunction, m)
+            a = MLPRegressor(solver='sgd', activation ='tanh',
+                       hidden_layer_sizes=[5]*k, max_iter=int(1e6), tol=1e-8)
+            m = a.fit(X, Y)
+            error[i-1, j] = calculategtLoss(targetFunction, m)
         print(i, "finished in", time.time() - t, "seconds | error: ")
 
-
+    with open(saveName, "wb") as f:
+        pickle.dump(error, f)
 
 
