@@ -1,12 +1,8 @@
 from sklearn.svm import SVC
 import numpy as np
-from copy import deepcopy as dc
-from time import time
-import pickle
 from numpy.polynomial.legendre import legval as leg
-import scipy.special as sp
-import sys
 import matplotlib.pyplot as plt
+
 
 def createLegrendeParams(d):
     d += 1
@@ -32,6 +28,7 @@ if __name__ == "__main__":
     iterations = 100
     n = 200
     max_d = 21
+    cs = 100
 
     error = np.zeros((max_d -1, iterations))
 
@@ -56,6 +53,6 @@ if __name__ == "__main__":
                         e += len(svm.support_vectors_)
                     except ValueError:
                         pass
-            error[d-1, i] = e / iterations / n
+            error[d-1, i] = e / cs / n
 
     plot(error)

@@ -47,10 +47,10 @@ class GLTlinear:
     equidistant positioning should be assumed
     @param deg Number of nodes
     """
-    def __init__(self, deg, dim):
+    def __init__(self, deg, min, max, dim):
         self.deg = deg
         self.w = np.zeros(deg ** dim)
-        self.nodes = [np.linspace(0, 1, deg) for i in range(dim)]
+        self.nodes = [np.linspace(min, max, deg) for i in range(dim)]
         self.dist = self.nodes[0][1] - self.nodes[0][0]
 
     """
